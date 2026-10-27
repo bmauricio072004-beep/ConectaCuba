@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const STATUS={submitted:'Enviada',reviewing:'En revisión',contacted:'Contacto iniciado',accepted:'Seleccionada',not_selected:'No seleccionada',withdrawn:'Retirada'};
+  const STATUS={submitted:'Enviada',reviewing:'En revisión',contacted:'En coordinación',accepted:'Seleccionada',not_selected:'No seleccionada',withdrawn:'Retirada'};
   const EXPLAIN={submitted:'El negocio recibió tu postulación. Todavía no ha indicado una decisión.',reviewing:'El negocio está revisando tu postulación.',contacted:'El negocio indicó que inició el contacto. Revisa el canal que compartiste.',accepted:'El negocio aceptó tu postulación. Coordina directamente las condiciones y los siguientes pasos.',not_selected:'El negocio indicó que no continuará con esta postulación.',withdrawn:'Retiraste esta postulación. Tu currículum y contacto ya no se comparten con el negocio.'};
   const REVIEW_STATUS={pending:'Pendiente de revisión',approved:'Publicada',rejected:'Requiere correcciones',withdrawn:'Retirada'};
   window.CC_OPPORTUNITIES={create(ctx){

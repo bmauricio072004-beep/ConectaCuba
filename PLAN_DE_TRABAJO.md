@@ -40,3 +40,7 @@ Los flujos nuevos de visibilidad restringida, invitaciones y reportes están int
 ## Más adelante
 
 Mapas, directorio de servicios, estadísticas salariales con suficientes datos, planes comerciales, pagos, tiendas e IA. Revisar el plan de Vercel antes del uso comercial; no activar compras o mejoras de pago automáticamente.
+
+## Validación de esta entrega
+
+Pasaron las nueve comprobaciones de código, publicación, paquete hospedado, flujos de cuenta, contactos/selección, borradores, contratación, sesiones y ofertas. La verificación local usa un sistema de archivos en memoria por la restricción de solo lectura del entorno; no se modificó la copia local de producción. La nueva fuente se guarda en GitHub mediante sus herramientas conectadas. La inspección visual en navegador real sigue pendiente. Vercel puede exigir autorización adicional del espacio para leer logs: no confundir el estado READY con una inspección visual o una validación del backend real.

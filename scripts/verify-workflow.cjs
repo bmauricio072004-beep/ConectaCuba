@@ -12,11 +12,11 @@ function client(role,admin=false){
  return {call,workflow,api:ctx.CC_WORKFLOW,ctx};
 }
 (async()=>{
- let person=client('person');const api=person.api;
+ let person=client('person');const api=person.api;const year=new Date().getUTCFullYear()+1;
  assert.equal(api.phone('5555 0100'),'+5355550100');assert.equal(api.phone('001 403 555 0100'),'+14035550100');assert.equal(api.phone('+1 (403) 555-0100'),'+14035550100');
  for(const invalid of ['ana@example.invalid','javascript:alert(1)','5555','+00000000','+53 55550100 ext 2','+53 +55550100'])assert.equal(api.phone(invalid),'');
  assert.match(api.whatsapp('55550100','Hola & adiós'),/^https:\/\/wa.me\/5355550100\?text=Hola%20%26%20adi%C3%B3s$/);
- assert.equal(person.workflow.cubaToISO('2027-01-15T14:00'),'2027-01-15T19:00:00.000Z');assert.equal(person.workflow.cubaToISO('2027-07-15T14:00'),'2027-07-15T18:00:00.000Z');
+ assert.equal(person.workflow.cubaToISO(year+'-01-15T14:00'),year+'-01-15T19:00:00.000Z');assert.equal(person.workflow.cubaToISO(year+'-07-15T14:00'),year+'-07-15T18:00:00.000Z');
  assert.throws(()=>person.workflow.cubaToISO('2020-01-01T12:00'),/futuras/);
  let result=await person.call('/rest/v1/rpc/cc_business_contact',{business_id:OWNER,application_id:APP});assert.equal(result.body.shared,false);assert(!Object.hasOwn(result.body,'whatsapp'));assert(!Object.hasOwn(result.body,'phone'));
  result=await person.call('/rest/v1/business_directory',null,'GET');assert.equal(result.body[0].whatsapp,'');
@@ -28,7 +28,7 @@ function client(role,admin=false){
  business=client('business');await business.call('/rest/v1/rpc/cc_save_business_contact',{...contact,visibility:'invited'});
  person=client('person');result=await person.call('/rest/v1/rpc/cc_business_contact',{business_id:OWNER,application_id:'33333333-3333-4333-8333-333333333332'});assert.equal(result.body.shared,false);
  business=client('business');
- const invitation={application_id:APP,job_id:JOB,status:'contacted',employer_message:'Te invitamos a conversar sobre el puesto.',meeting_at:'2027-01-15T19:00:00.000Z',meeting_place:'Llamada por WhatsApp'};
+ const invitation={application_id:APP,job_id:JOB,status:'contacted',employer_message:'Te invitamos a conversar sobre el puesto.',meeting_at:year+'-01-15T19:00:00.000Z',meeting_place:'Llamada por WhatsApp'};
  result=await business.call('/rest/v1/rpc/cc_application_next_step',{...invitation,job_id:'bad'});assert.equal(result.status,404);
  result=await business.call('/rest/v1/rpc/cc_application_next_step',{...invitation,meeting_at:'invalid'});assert.equal(result.status,400);
  result=await business.call('/rest/v1/rpc/cc_application_next_step',invitation);assert.equal(result.status,200);

@@ -1,0 +1,15 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
+const original=['index.html','app/index.html','auth.js','icon.svg','icon-192.png','icon-512.png'].map(path=>[path,fs.readFileSync(path)]);
+execFileSync(process.execPath,['scripts/build-hosted-preview.cjs'],{stdio:'inherit'});
+for(const [path,content] of original)assert(fs.readFileSync(path).equals(content),'The review build must not change source: '+path);
+const app=fs.readFileSync('preview-site/app/index.html','utf8'),landing=fs.readFileSync('preview-site/index.html','utf8');
+for(const required of ['CC_WORKFLOW','CC_DRAFTS','employmentWorkflow','Mi contacto laboral','Preparar invitación','Recuperar borrador','Administración (prueba)'])assert(app.includes(required),'Missing review module: '+required);
+assert(!/<script\b[^>]*src=/.test(app),'The standalone app must include its scripts');
+assert(!/<link\b[^>]*href="\//.test(app),'The standalone app must include its styles and logo');
+assert(app.includes("connect-src 'none'"),'Review app must not send network requests');
+assert(!app.includes("navigator.serviceWorker.register("));
+assert(!fs.readFileSync('preview-site/landing.js','utf8').includes("navigator.serviceWorker.register("));
+assert(landing.includes('/app/'));
+for(const icon of ['icon.svg','icon-192.png','icon-512.png'])assert(fs.readFileSync(icon).equals(fs.readFileSync('preview-site/'+icon)),'Original icon changed: '+icon);
+console.log('PASS: paquete de revisión con módulos completos, entradas web/app, logo exacto y fuente intacta; sin red ni service worker en el simulador.');

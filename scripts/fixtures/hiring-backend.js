@@ -83,7 +83,7 @@
       const reason=String(body.reason||''),detail=String(body.detail||'').trim();
       if(!['Posible fraude','Datos engañosos','Contenido inapropiado','Otro'].includes(reason)||detail.length<15||detail.length>2000)return json({message:'Revisa el motivo y la descripción'},400);
       if(reports.some(r=>r.job_id===job.id&&r.author_id===profile.id&&r.status==='pending'))return json({message:'Ya tienes un reporte pendiente para esta oferta'},409);
-      if(reports.filter(r=>r.author_id===profile.id&&new Date(r.created_at).toDateString()===new Date().toDateString()).length>=5)return json({message:'Límite de cinco reportes de prueba al día'},429);
+      if(reports.filter(r=>r.author_id===profile.id&&new Date(r.created_at).toISOString().slice(0,10)===new Date().toISOString().slice(0,10)).length>=5)return json({message:'Límite de cinco reportes de prueba al día'},429);
       const r={id:fixtureUUID(),job_id:job.id,job_title:job.title,author_id:profile.id,reason,detail,status:'pending',created_at:new Date().toISOString()};reports.push(r);return json({id:r.id,status:r.status},201);
     }
     if(path==='/rest/v1/rpc/cc_reports_moderation'){

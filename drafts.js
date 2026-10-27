@@ -7,6 +7,8 @@
  function values(form){return Object.fromEntries(fields(form).map(el=>[el.name,String(el.value).slice(0,12000)]));}
  function read(form){try{const data=JSON.parse(sessionStorage.getItem(key(form))||'null');if(data&&Date.now()-data.at<7*24*60*60*1000)return data;return null;}catch{return null;}}
  function save(form){const k=key(form);if(!k)return false;try{sessionStorage.setItem(k,JSON.stringify({at:Date.now(),values:values(form)}));return true;}catch{return false;}}
+ function clearAccount(id){if(!id)return;try{const prefix='cc_workflow_draft_'+id+'_',keys=[];for(let i=0;i<sessionStorage.length;i++){const name=sessionStorage.key(i);if(name?.startsWith(prefix))keys.push(name);}keys.forEach(name=>sessionStorage.removeItem(name));}catch{}}
+ function cache(form){form.dataset.dirty='true';if(!save(form)&&form.dataset.draftFailed!=='true'){form.dataset.draftFailed='true';const note=document.createElement('p');note.className='workflow-draft';note.textContent='El navegador no permite guardar este borrador. Mantén abierta la pestaña hasta guardar tus cambios.';form.prepend(note);}}
  function clear(form){try{sessionStorage.removeItem(key(form));}catch{}}
  function mount(form){
   if(mounted.has(form)||!key(form))return;mounted.add(form);
@@ -23,11 +25,11 @@
   const connection=document.createElement('div');connection.className='workflow-status';connection.setAttribute('role','status');connection.textContent='Sin conexión. Puedes seguir escribiendo; los cambios no se envían automáticamente. Reintenta cuando vuelva la conexión.';
   const syncConnection=()=>{connection.hidden=navigator.onLine!==false;};syncConnection();document.body.prepend(connection);
   window.addEventListener('online',syncConnection);window.addEventListener('offline',syncConnection);
-  document.addEventListener('input',e=>{const form=e.target.closest('form[data-form]');if(form&&key(form)){form.dataset.dirty='true';save(form);}},true);
-  document.addEventListener('change',e=>{const form=e.target.closest('form[data-form]');if(form&&key(form)){form.dataset.dirty='true';save(form);}},true);
+  document.addEventListener('input',e=>{const form=e.target.closest('form[data-form]');if(form&&key(form)){cache(form);}},true);
+  document.addEventListener('change',e=>{const form=e.target.closest('form[data-form]');if(form&&key(form)){cache(form);}},true);
   if(typeof MutationObserver!=='undefined'){const observer=new MutationObserver(scan);observer.observe(document.body,{childList:true,subtree:true});}
   scan();
  }
- window.CC_DRAFTS={key,values,save,read,clear,mount,init};
+ window.CC_DRAFTS={key,values,save,read,clear,clearAccount,mount,init};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

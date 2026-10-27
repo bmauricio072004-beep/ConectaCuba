@@ -21,6 +21,7 @@
     if(!!before?.access_token!==!!s?.access_token||before?.user?.id!==s?.user?.id)sessionEpoch++;
   }
   function clearPrivateAccount(){
+    window.CC_DRAFTS?.clearAccount(state.profile?.id||readSession()?.user?.id);
     sessionEpoch++;state.render++;refreshPromise=null;hiring?.reset();opportunities?.reset();
     Object.assign(state,{profile:null,business:null,resume:null,isAdmin:false,applications:[],reviews:[],ownJobs:[],pendingJob:null,afterLoginPage:null,ownerJobId:null,ownerApplicationId:null,failedRoute:null});
     $('account-content').removeAttribute('aria-busy');$('account-content').innerHTML='';$('modal-content').innerHTML='';$('account-welcome').textContent='Mi cuenta';$('account-subtitle').textContent='';
@@ -109,8 +110,8 @@
       field('Nombre y apellidos de la persona de contacto *','contact_person',b.contact_person,'required minlength="2" maxlength="100" autocomplete="name"')+
       otherSelect('Actividad principal *','business_activity','business_activity_other',activities,b.business_activity,b.business_activity_other)+locationFields(b)+
       area('¿A qué se dedica y qué servicios ofrece?','description',b.description)+
-      field('WhatsApp o teléfono del negocio (opcional)','whatsapp',b.whatsapp,'type="tel" maxlength="100"','Para el contacto profesional de tu negocio.')+
-      field('Otro contacto del negocio (opcional)','other_contact',b.other_contact,'maxlength="200"','Ej.: Telegram, correo o página web.')+
+      (workflow?.capable()?'<div class="span2 account-note">El WhatsApp, horario y privacidad se gestionan en Mi contacto laboral. <button type="button" class="text-btn" data-account-page="contacts">Gestionar contacto laboral</button></div>':field('WhatsApp o teléfono del negocio (opcional)','whatsapp',b.whatsapp,'type="tel" maxlength="100"','Para el contacto profesional de tu negocio.')+
+      field('Otro contacto del negocio (opcional)','other_contact',b.other_contact,'maxlength="200"','Ej.: Telegram o página web.'))+
       field('Enlace a redes, web o evidencia del negocio *','proof_url',b.proof_url,'required maxlength="500"','La evidencia solo la ve administración.',true)+
       field('Dirección o zona donde opera (privada)','business_address',b.business_address,'maxlength="300"', '',true);
   }
@@ -120,7 +121,7 @@
       signupFields()+'<div class="form-section span2">'+(person?'Tu perfil':'Tu negocio')+'</div>'+
       (person?field('Nombre y apellidos *','display_name','','required minlength="2" maxlength="100" autocomplete="name"')+locationFields()+
         field('Dirección o zona (opcional)','address','','maxlength="300" autocomplete="street-address"','Queda privada.',true)+
-        field('¿Qué trabajo buscas?','desired_job','','maxlength="120"','Puedes ampliarlo luego en tu perfil.',true)+area('Habilidades o experiencia principal','profile_summary')+otherSelect('Canal de contacto preferido','public_contact','public_contact_other',['WhatsApp','Teléfono','Correo','Telegram','Otro'],'WhatsApp','','Otro'):
+        field('¿Qué trabajo buscas?','desired_job','','maxlength="120"','Puedes ampliarlo luego en tu perfil.',true)+area('Habilidades o experiencia principal','profile_summary')+otherSelect('Canal de contacto preferido','public_contact','public_contact_other',['WhatsApp','Teléfono','Telegram','Otro'],'WhatsApp','','Otro'):
         businessFields())+formEnd(person?'Crear mi perfil':'Enviar negocio para revisión');
   }
   function loginForm(){return '<p class="account-note">Entra con el correo de tu cuenta.</p><form class="form-grid" data-form="login">'+
@@ -309,16 +310,16 @@
 
   function renderProfile(){
     const p=state.profile;
-    return '<form class="form-grid account-form" data-form="profile">'+field('Nombre y apellidos *','display_name',p.display_name,'required minlength="2" maxlength="100" autocomplete="name"','',true)+locationFields(p)+field('Dirección o zona (privada)','address',p.address,'maxlength="300"','Nunca se comparte en postulaciones.',true)+field('Contacto alternativo (privado)','contact_recovery',p.contact_recovery,'maxlength="200"','No sustituye el correo de recuperación.',true)+(p.account_type==='person'?otherSelect('Canal de contacto preferido','public_contact','public_contact_other',['WhatsApp','Teléfono','Correo','Telegram','Otro'],p.public_contact||'WhatsApp',p.public_contact_other,'Otro'):'')+'<div class="notice span2" role="status"></div><div class="form-actions span2"><button type="submit" class="btn btn-primary">Guardar datos</button></div></form>';
+    return '<form class="form-grid account-form" data-form="profile">'+field('Nombre y apellidos *','display_name',p.display_name,'required minlength="2" maxlength="100" autocomplete="name"','',true)+locationFields(p)+field('Dirección o zona (privada)','address',p.address,'maxlength="300"','Nunca se comparte en postulaciones.',true)+field('Contacto alternativo (privado)','contact_recovery',p.contact_recovery,'maxlength="200"','No sustituye el correo de recuperación.',true)+(p.account_type==='person'?otherSelect('Canal de contacto preferido','public_contact','public_contact_other',['WhatsApp','Teléfono','Telegram','Otro'],['WhatsApp','Teléfono','Telegram','Otro'].includes(p.public_contact)?p.public_contact:'WhatsApp',p.public_contact_other,'Otro'):'')+'<div class="notice span2" role="status"></div><div class="form-actions span2"><button type="submit" class="btn btn-primary">Guardar datos</button></div></form>';
   }
 
   async function saveProfile(form,d){
     const p=state.profile;
     const value={display_name:d.display_name.trim(),province:d.province,municipality:d.municipality.trim(),address:d.address.trim(),contact_recovery:d.contact_recovery.trim(),updated_at:new Date().toISOString()};
-    if(p.account_type==='person')Object.assign(value,{desired_job:d.desired_job===undefined?(p.desired_job||''):d.desired_job.trim(),profile_summary:d.profile_summary===undefined?(p.profile_summary||''):d.profile_summary.trim(),public_contact:d.public_contact||'Correo',public_contact_other:d.public_contact==='Otro'?(d.public_contact_other||'').trim():''});
+    if(p.account_type==='person')Object.assign(value,{desired_job:d.desired_job===undefined?(p.desired_job||''):d.desired_job.trim(),profile_summary:d.profile_summary===undefined?(p.profile_summary||''):d.profile_summary.trim(),public_contact:d.public_contact||p.public_contact||'WhatsApp',public_contact_other:d.public_contact==='Otro'?(d.public_contact_other||'').trim():''});
     await patchOne('profiles?id=eq.'+p.id,value);form.dataset.dirty='false';await showAccount('profile',false);toast('Perfil guardado.');
   }
-  const CV_FIELDS={intro:['Presentación profesional',4000],experience:['Experiencia laboral',10000],education:['Estudios y cursos',10000],skills:['Habilidades',4000],languages:['Idiomas',500],cv_contact:['Contacto para el PDF',200]};
+  const CV_FIELDS={intro:['Presentación profesional',4000],experience:['Experiencia laboral',10000],education:['Estudios y cursos',10000],skills:['Habilidades',4000],languages:['Idiomas',500],cv_contact:['WhatsApp para el PDF',200]};
   async function renderResume(){
     const r=await loadResume(),p=state.profile,completed=Object.keys(CV_FIELDS).filter(k=>k!=='cv_contact'&&r?.[k]?.trim()).length;
     return accountBack()+'<section class="resume-profile"><h2>Mi currículum</h2><p>'+esc(p.display_name)+' · '+esc(p.municipality)+'</p><div class="resume-progress"><span>'+completed+' de 5 secciones completadas</span><span class="progress-track"><span style="width:'+completed*20+'%"></span></span></div>'+(r?'<button type="button" class="btn btn-primary" data-account-page="resume-preview">Vista previa y PDF</button>':'<p class="small-note">Crea tu currículum completando las secciones de abajo.</p>')+'</section><div class="resume-sections account-group">'+Object.entries(CV_FIELDS).map(([key,[label]])=>'<button type="button" class="resume-row" data-cv-section="'+key+'"><span><strong>'+label+'</strong><small>'+esc(r?.[key]?.trim()?r[key].trim().replace(/\s+/g,' ').slice(0,100):'Añadir información')+'</small></span><span class="resume-row-state">'+(r?.[key]?.trim()?'Editar':'Añadir')+' <span aria-hidden="true">›</span></span></button>').join('')+'</div><p class="small-note resume-privacy">Tu dirección y contacto alternativo privados no aparecen en el PDF. Se incluye la marca ConectaCuba.</p>';
@@ -337,6 +338,7 @@
   }
   async function saveResume(form,d){
     const value={};for(const key of Object.keys(CV_FIELDS))if(d[key]!==undefined)value[key]=String(d[key]).trim();
+    if(value.cv_contact&&window.CC_WORKFLOW){const normalized=window.CC_WORKFLOW.phone(value.cv_contact);if(!normalized)throw new Error('Indica un WhatsApp válido para el PDF, con prefijo internacional.');value.cv_contact=normalized;}
     const merged={...(state.resume||{}),...value};
     if(!Object.keys(CV_FIELDS).some(k=>k!=='cv_contact'&&String(merged[k]||'').trim()))throw new Error('Completa al menos una sección de tu currículum.');
     value.updated_at=new Date().toISOString();let row;
@@ -377,7 +379,7 @@
   }
   async function saveBusiness(form,d){
     const value={};
-    for(const key of ['business_name','contact_person','business_activity','province','municipality','description','whatsapp','other_contact','proof_url','business_address'])value[key]=(d[key]||'').trim();
+    for(const key of ['business_name','contact_person','business_activity','province','municipality','description','whatsapp','other_contact','proof_url','business_address'])value[key]=String(d[key]??state.business?.[key]??'').trim();
     value.business_activity_other=d.business_activity==='Otra'?(d.business_activity_other||'').trim():'';
     value.show_address=state.business?.show_address===true;
     await patchOne('business_applications?user_id=eq.'+state.profile.id,value);
@@ -488,7 +490,7 @@
     const duplicate=await db('job_applications?job_id=eq.'+id+'&applicant_id=eq.'+p.id+'&select=id&limit=1');
     if(duplicate.length){toast('Ya te postulaste a esta vacante.');await showAccount('applications');return;}
     const r=await loadResume();
-    if(!r){closeModal();await showAccount('resume');toast('Crea y guarda tu currículum antes de postularte.','info');return;}
+    if(!r||!['intro','experience','education','skills','languages'].some(k=>String(r[k]||'').trim())){closeModal();await showAccount('resume');toast('Completa al menos una sección de tu currículum antes de postularte.','info');return;}
     modalContent('Postularme a '+j.title,'<p>Enviarás tu currículum a <strong>'+esc(j.business_name)+'</strong>.</p><form class="form-grid" data-form="apply" data-id="'+id+'">'+
       field('WhatsApp para este negocio *','contact',window.CC_WORKFLOW?.phone(r.cv_contact)||'','type="tel" inputmode="tel" required minlength="8" maxlength="24"','Incluye el código del país. Para un número cubano de 8 cifras añadiremos +53.',true)+area('Mensaje de presentación (opcional)','message','',2000)+
       '<label class="check-field span2"><input type="checkbox" name="consent" required><span>Autorizo compartir mi nombre, municipio y provincia, este currículum y el contacto indicado con '+esc(j.business_name)+'. Mi dirección y contacto alternativo privados no se envían.</span></label>'+formEnd('Enviar postulación'));

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const SUMMARY='id,job_id,applicant_name,applicant_location,desired_job,status,created_at,updated_at';
-  const STAGES={submitted:'Por revisar',reviewing:'En revisión',contacted:'Contacto iniciado',accepted:'Seleccionada',not_selected:'No seleccionada',withdrawn:'Retirada'};
+  const STAGES={submitted:'Por revisar',reviewing:'En revisión',contacted:'En coordinación',accepted:'Seleccionada',not_selected:'No seleccionada',withdrawn:'Retirada'};
   const COUNT_KEYS={submitted:'new_count',reviewing:'reviewing_count',contacted:'contacted_count',accepted:'accepted_count',not_selected:'closed_count',withdrawn:'withdrawn_count'};
   const PAGE_SIZE=50;
   window.CC_HIRING={
