@@ -1,9 +1,9 @@
 (() => {
  'use strict';
- const allowed=new Set(['profile','resume','job','business-edit','apply','workflow-business-contact','workflow-person-contact','workflow-next-step','workflow-report','workflow-message','preview-register']);
+ const allowed=new Set(['profile','resume','job','business-edit','apply','workflow-business-contact','workflow-person-contact','workflow-next-step','workflow-report','workflow-message','preview-register','connect-request','connect-response','connect-message']);
  const mounted=new WeakSet(),fields=form=>Array.from(form.elements||[]).filter(el=>el.name&&!el.disabled&&!['password','file','checkbox','radio','submit','button','hidden'].includes(el.type)&&!/(password|token|secret|consent)/i.test(el.name));
  function owner(){try{return JSON.parse(localStorage.getItem('cc_auth_session_v1')||'null')?.user?.id||'';}catch{return '';}}
- function key(form){const id=owner();return id&&allowed.has(form.dataset.form)?'cc_workflow_draft_'+id+'_'+[form.dataset.form,form.dataset.id||'new',form.dataset.section||'',form.dataset.jobId||''].join('_'):'';}
+ function key(form){const id=owner();return id&&allowed.has(form.dataset.form)?'cc_workflow_draft_'+id+'_'+[form.dataset.form,form.dataset.id||form.dataset.entryId||'new',form.dataset.section||'',form.dataset.jobId||''].join('_'):'';}
  function values(form){return Object.fromEntries(fields(form).map(el=>[el.name,String(el.value).slice(0,12000)]));}
  function read(form){try{const data=JSON.parse(sessionStorage.getItem(key(form))||'null');if(data&&Date.now()-data.at<7*24*60*60*1000)return data;return null;}catch{return null;}}
  function save(form){const k=key(form);if(!k)return false;try{sessionStorage.setItem(k,JSON.stringify({at:Date.now(),values:values(form)}));return true;}catch{return false;}}

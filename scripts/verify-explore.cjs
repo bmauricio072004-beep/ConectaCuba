@@ -1,0 +1,42 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const OWNER='11111111-1111-4111-8111-111111111111',PERSON='11111111-1111-4111-8111-111111111114',OUT='11111111-1111-4111-8111-111111111199';
+let shared=null;const store={read:()=>shared?JSON.parse(JSON.stringify(shared)):null,write:value=>shared=JSON.parse(JSON.stringify(value))};
+function client(role='person',flags=''){
+ const values=new Map(),profile={id:flags.includes('outsider')?OUT:role==='person'?PERSON:OWNER,account_type:role},nodes=new Map();
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{innerHTML:'',setAttribute(){}});return nodes.get(id);};
+ const ctx={URL,URLSearchParams,Response,Date,Intl,crypto:require('node:crypto').webcrypto,location:{origin:'https://preview.invalid',search:'?role='+role+'&catalog=1'+flags},CC_PREVIEW_STORE:store,sessionStorage:{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)},fetch:()=>{throw Error('Unexpected network')}};ctx.window=ctx;vm.createContext(ctx);
+ for(const file of ['scripts/fixtures/hiring-backend.js','workflow.js','explore.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);
+ const call=async(path,body,method='POST')=>{const r=await ctx.fetch(ctx.CC_SUPABASE.url+path,{method,...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,body:await r.json()};};
+ const invoke=async(name,body)=>{const r=await call('/rest/v1/rpc/'+name,body);if(r.status>=400)throw Error(r.body.message);return r.body;};
+ const api=ctx.CC_CONNECT.create({getProfile:()=>profile,request:async(path,opts)=>{const r=await call(path,JSON.parse(opts.body));if(r.status>=400)throw Error(r.body.message);return r.body;},db:async(path,opts={})=>{const r=await call('/rest/v1/'+path,opts.body?JSON.parse(opts.body):null,opts.method||'GET');if(r.status>=400)throw Error(r.body.message);return r.body;},document:{getElementById:node,querySelectorAll:()=>[]},date:String,markSeen(){},toast(){},confirm:()=>true,modal(){},closeModal(){},goExplore:async()=>{},goRequest:async()=>{},requireLogin(){}});
+ return {ctx,api,call,invoke};
+}
+(async()=>{
+ let person=client(),business=client('business'),outsider=client('person','&outsider=1'),guest=client('person','&guest=1');
+ let r=await person.call('/rest/v1/rpc/cc_explore_directory',{});assert.equal(r.status,200);const entries=r.body;assert(entries.some(e=>e.type==='business'));assert(entries.some(e=>e.type==='professional'));assert(entries.some(e=>e.type==='shop'));assert(entries.every(e=>!e.public_whatsapp));assert(!JSON.stringify(entries).includes('cv_snapshot'));assert(!JSON.stringify(entries).includes('contact_recovery'));
+ const api=person.ctx.CC_CONNECT;
+ assert.equal(api.filterEntries(entries,{q:'diseno'}).length,1);assert.equal(api.filterEntries(entries,{type:'shop'}).length,1);assert.equal(api.filterEntries(entries,{province:'Matanzas'}).length,1);
+ const home=await person.api.renderHome();assert(home.includes('¿Qué necesitas'));assert(home.includes('Solicitar')===false);assert(home.includes('Perfiles y servicios ficticios'));
+ const publicProfile=await person.api.renderProfile('taller');assert(publicProfile.includes('Solicitar información o servicio'));assert(!publicProfile.includes('WhatsApp público'));
+ r=await business.call('/rest/v1/rpc/cc_create_connection',{entry_id:'taller',body:'Necesito una revisión eléctrica.',contact:'+5355550100',consent:true});assert.equal(r.status,400);
+ r=await guest.call('/rest/v1/rpc/cc_create_connection',{entry_id:'taller',body:'Necesito una revisión eléctrica.',contact:'+5355550100',consent:true});assert.equal(r.status,403);
+ r=await person.call('/rest/v1/rpc/cc_create_connection',{entry_id:'taller',body:'Necesito una revisión de la instalación <script>example</script>.',contact:'+5355550100',consent:false});assert.equal(r.status,400);
+ r=await person.call('/rest/v1/rpc/cc_create_connection',{entry_id:'taller',requester_id:OWNER,body:'Necesito una revisión de la instalación <script>example</script>.',contact:'+5355550100',consent:true});assert.equal(r.status,201);const id=r.body.id;
+ const duplicate=await person.invoke('cc_create_connection',{entry_id:'taller',body:'Necesito una revisión eléctrica de prueba.',contact:'+5355550100',consent:true});assert.equal(duplicate.id,id);assert(duplicate.alreadyExists);
+ business=client('business');const summaries=await business.invoke('cc_connection_requests',{});assert.equal(summaries[0].id,id);assert.equal(summaries[0].requester_id,PERSON);assert(!Object.hasOwn(summaries[0],'contact'));assert(!Object.hasOwn(summaries[0],'body'));
+ const detail=await business.invoke('cc_connection_requests',{request_id:id});assert.equal(detail.contact,'+5355550100');
+ const html=await business.api.renderRequest(id);assert(html.includes('&lt;script&gt;'));assert(!html.includes('<script>'));assert(html.includes('Responder por WhatsApp'));
+ r=await outsider.call('/rest/v1/rpc/cc_connection_requests',{request_id:id});assert.equal(r.status,403);
+ r=await person.call('/rest/v1/rpc/cc_update_connection',{request_id:id,status:'accepted',response:'Intento de aceptar mi propia solicitud'});assert.equal(r.status,403);
+ r=await business.call('/rest/v1/rpc/cc_update_connection',{request_id:id,status:'contacted',response:'Podemos coordinar una visita de prueba.'});assert.equal(r.status,200);
+ person=client();let received=await person.invoke('cc_connection_requests',{request_id:id});assert.equal(received.response,'Podemos coordinar una visita de prueba.');
+ r=await person.call('/rest/v1/rpc/cc_connection_message',{request_id:id,body:'Gracias, ¿qué horario de prueba tienen?',client_key:'connection-message-001'});assert.equal(r.status,201);
+ r=await person.call('/rest/v1/rpc/cc_connection_message',{request_id:id,body:'Gracias, ¿qué horario de prueba tienen?',client_key:'connection-message-001'});assert.equal(r.status,200);assert(r.body.deduplicated);
+ business=client('business');received=await business.invoke('cc_connection_requests',{request_id:id});assert.equal(received.thread.length,2);assert.equal(received.thread[1].body,'Gracias, ¿qué horario de prueba tienen?');
+ r=await outsider.call('/rest/v1/rpc/cc_connection_message',{request_id:id,body:'No autorizado'});assert.equal(r.status,403);
+ r=await person.call('/rest/v1/rpc/cc_update_connection',{request_id:id,status:'withdrawn'});assert.equal(r.status,200);
+ business=client('business');const withdrawn=await business.invoke('cc_connection_requests',{request_id:id});assert.equal(withdrawn.contact,null);assert.equal(withdrawn.body,null);assert.equal(withdrawn.thread.length,0);
+ r=await business.call('/rest/v1/rpc/cc_connection_message',{request_id:id,body:'No debe poder enviarse'});assert.equal(r.status,409);
+ console.log('PASS: directorio público, filtros, perfiles, solicitudes consentidas, respuestas, conversación, idempotencia, aislamiento entre cuentas y retirada de contacto.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

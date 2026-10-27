@@ -4,7 +4,7 @@ const original=['index.html','app/index.html','auth.js','icon.svg','icon-192.png
 execFileSync(process.execPath,['scripts/build-hosted-preview.cjs'],{stdio:'inherit'});
 for(const [path,content] of original)assert(fs.readFileSync(path).equals(content),'The review build must not change source: '+path);
 const app=fs.readFileSync('preview-site/app/index.html','utf8'),landing=fs.readFileSync('preview-site/index.html','utf8');
-for(const required of ['CC_WORKFLOW','CC_DRAFTS','employmentWorkflow','Mi contacto laboral','Preparar invitación','Recuperar borrador','Administración (prueba)'])assert(app.includes(required),'Missing review module: '+required);
+for(const required of ['CC_WORKFLOW','CC_CONNECT','CC_DRAFTS','employmentWorkflow','Datos personales y contacto','Preparar invitación','Recuperar borrador','Solicitudes y conexiones','¿Qué necesitas','Administración (prueba)'])assert(app.includes(required),'Missing review module: '+required);
 assert(!/<script\b[^>]*src=/.test(app),'The standalone app must include its scripts');
 assert(!/<link\b[^>]*href="\//.test(app),'The standalone app must include its styles and logo');
 assert(app.includes("connect-src 'none'"),'Review app must not send network requests');

@@ -6,7 +6,7 @@
   const params=new URLSearchParams(location.search),person=params.get('role')==='person',pending=params.has('pending');
   const stamp='2026-10-25T06:00:00Z';
   let fixtureSequence=1;const fixtureUUID=()=>globalThis.crypto?.randomUUID?.()||'99999999-9999-4999-8999-'+String(Date.now()+fixtureSequence++).slice(-12).padStart(12,'0');
-  const profile={id:person?PERSON:OWNER,account_type:person?'person':'business',display_name:person?'Persona A de prueba':'Responsable de prueba',province:'La Habana',municipality:'Cerro',address:'',contact_recovery:'',public_contact:'Correo',public_contact_other:'',desired_job:'Técnico eléctrico',profile_summary:'Experiencia en instalaciones y mantenimiento.'};
+  const profile={id:params.has('outsider')?'11111111-1111-4111-8111-111111111199':person?PERSON:OWNER,account_type:person?'person':'business',display_name:person?'Persona A de prueba':'Responsable de prueba',province:'La Habana',municipality:'Cerro',address:'',contact_recovery:'',public_contact:'Correo',public_contact_other:'',desired_job:'Técnico eléctrico',profile_summary:'Experiencia en instalaciones y mantenimiento.'};
   const business={user_id:OWNER,business_name:'Taller de prueba',contact_person:'Responsable de prueba',business_activity:'Electricidad y electrónica',business_activity_other:'',province:'La Habana',municipality:'Cerro',description:'Instalaciones y mantenimiento de equipos.',whatsapp:'+53 00000000',other_contact:'',proof_url:'https://example.invalid',business_address:'',show_address:false,review_status:pending?'pending':'approved',email_confirmed:true,contact_email:'negocio@example.invalid',review_note:'',logo_path:'',created_at:stamp};
   const jobs=[
     {id:JOB_A,business_user_id:OWNER,business_name:business.business_name,title:'Técnico de mantenimiento eléctrico',category:'Electricidad y electrónica',category_other:'',description:'Diagnóstico y reparación de equipos eléctricos.\nBuscamos experiencia práctica, responsabilidad y disposición para trabajar en equipo.',province:'La Habana',municipality:'Cerro',work_schedule:'Tiempo completo',work_modality:'Presencial',salary_min:18000,salary_max:25000,salary_currency:'CUP',salary_period:'monthly',status:pending?'closed':'published',created_at:stamp,updated_at:stamp},
@@ -31,8 +31,9 @@
   let resume={user_id:profile.id,intro:'Técnica en electricidad con experiencia en mantenimiento.',experience:'Diagnóstico de equipos y reparaciones.',education:'Técnico medio en electricidad.',skills:'Instalación y mantenimiento.',languages:'Español',cv_contact:'+53 00000000'};
   // Optional storage bridge supplied only by the standalone preview builder.
   const store=window.CC_PREVIEW_STORE;
-  window.CC_CAPABILITIES={employmentWorkflow:!!store};
-  let reports=[],messages=[];
+  window.CC_CAPABILITIES={employmentWorkflow:!!store,connectionDirectory:!!store};
+  let reports=[],messages=[],connectionRequests=[];
+  const directory=[{id:'taller',owner_id:OWNER,type:'business',name:business.business_name,category:'Servicios técnicos',province:'La Habana',municipality:'Cerro',description:'Un negocio de muestra para conectar con servicios de mantenimiento y oportunidades de empleo.',services:['Mantenimiento eléctrico','Reparación de equipos'],public_whatsapp:''},{id:'profesional-creativo',owner_id:PERSON,type:'professional',name:'Profesional creativo · ejemplo',category:'Diseño y comunicación',province:'La Habana',municipality:'Playa',description:'Perfil profesional ficticio para probar cómo ofrecer habilidades y recibir solicitudes.',services:['Diseño para negocios','Contenido digital'],public_whatsapp:''},{id:'servicio-hogar',owner_id:OWNER,type:'service',name:'Soluciones para tu hogar · ejemplo',category:'Hogar y reparaciones',province:'Matanzas',municipality:'Cárdenas',description:'Un servicio de muestra para solicitar información antes de coordinar un trabajo.',services:['Instalaciones','Revisión y mantenimiento'],public_whatsapp:''},{id:'tienda-local',owner_id:OWNER,type:'shop',name:'Tienda local · ejemplo',category:'Productos y suministros',province:'Villa Clara',municipality:'Santa Clara',description:'Concepto de tienda para consultar productos y disponibilidad. Esta beta no procesa compras ni pagos.',services:['Consultar productos','Pedir disponibilidad'],public_whatsapp:''}];
   let contactSettings={whatsapp:business.whatsapp||'',phone:'',contact_person:business.contact_person||'',contact_hours:'Lunes a viernes, de 9:00 a 17:00',visibility:'invited'};
   const normalizedPhone=value=>{let s=String(value||'').trim();if(!s||!/^(\+|00)?[\d\s().-]+$/.test(s))return '';let d=s.replace(/\D/g,'');if(s.startsWith('00'))d=d.slice(2);if(d.length===8&&!s.startsWith('+')&&!s.startsWith('00'))d='53'+d;return /^[1-9]\d{7,14}$/.test(d)?'+'+d:'';};
   const touch=a=>new Date(Math.max(Date.now(),new Date(a.updated_at||a.created_at).getTime()+1)).toISOString();
@@ -48,6 +49,7 @@
       else Object.assign(contactSettings,{whatsapp:business.whatsapp||contactSettings.whatsapp,contact_person:business.contact_person||contactSettings.contact_person});
       if(Array.isArray(saved.reports))reports=saved.reports;
       if(Array.isArray(saved.messages))messages=saved.messages;
+      if(Array.isArray(saved.connectionRequests))connectionRequests=saved.connectionRequests;
       if(Array.isArray(saved.reviews))reviewSubmissions.splice(0,reviewSubmissions.length,...saved.reviews);
       if(saved.profiles?.[profile.id])Object.assign(profile,saved.profiles[profile.id]);
       if(saved.resumes?.[profile.id])resume=saved.resumes[profile.id];
@@ -57,7 +59,7 @@
   function savePreview(){
     if(!store)return;
     const before=store.read()||{};
-    store.write({jobs,applications,business,contactSettings,reports,messages,reviews:reviewSubmissions,savedJobs:before.savedJobs||{},profiles:{...before.profiles,[profile.id]:profile},resumes:{...before.resumes,[profile.id]:resume}});
+    store.write({jobs,applications,business,contactSettings,reports,messages,connectionRequests,reviews:reviewSubmissions,savedJobs:before.savedJobs||{},profiles:{...before.profiles,[profile.id]:profile},resumes:{...before.resumes,[profile.id]:resume}});
   }
   const values=new Map(params.has('guest')?[]:[['cc_auth_session_v1',JSON.stringify({access_token:'local-fixture-not-a-real-token',expires_at:Date.now()/1000+3600,user:{id:profile.id,email:person?'ana@example.invalid':'negocio@example.invalid',email_confirmed_at:stamp}})]]);
   // Only bookmark keys cross preview reloads; never persist the synthetic session.
@@ -79,6 +81,47 @@
   window.fetch=async(input,options={})=>{
     const target=String(input);if(!target.startsWith(api))return store?json({message:'La vista previa no permite conexiones externas.'},403):realFetch(input,options);
     const u=new URL(target),path=u.pathname.slice('/__qa_api'.length),p=u.searchParams,method=options.method||'GET',body=typeof options.body==='string'?JSON.parse(options.body):{};
+    if(path==='/rest/v1/rpc/cc_explore_directory'){
+      const rows=directory.filter(e=>e.owner_id!==OWNER||business.review_status==='approved').map(e=>({...e,name:e.id==='taller'?business.business_name:e.name,description:e.id==='taller'?business.description:e.description,province:e.id==='taller'?business.province:e.province,municipality:e.id==='taller'?business.municipality:e.municipality,public_whatsapp:e.owner_id===OWNER&&contactSettings.visibility==='public'?contactSettings.whatsapp:''}));
+      return json(body.entry_id?rows.filter(e=>e.id===body.entry_id):rows);
+    }
+    if(path==='/rest/v1/rpc/cc_create_connection'){
+      if(params.has('guest'))return json({message:'Inicia sesión para enviar una solicitud'},403);
+      const entry=directory.find(e=>e.id===body.entry_id);if(!entry||entry.owner_id===profile.id||(entry.owner_id===OWNER&&business.review_status!=='approved'))return json({message:'Este perfil no está disponible para la solicitud'},400);
+      const text=String(body.body||'').trim(),number=normalizedPhone(body.contact);
+      if(!body.consent||!number||text.length<15||text.length>2000)return json({message:'Revisa la solicitud y autoriza compartir el contacto'},400);
+      const existing=connectionRequests.find(r=>r.entry_id===entry.id&&r.requester_id===profile.id&&['pending','contacted'].includes(r.status));if(existing)return json({id:existing.id,status:existing.status,updated_at:existing.updated_at,alreadyExists:true});
+      if(connectionRequests.filter(r=>r.requester_id===profile.id&&r.created_at.slice(0,10)===new Date().toISOString().slice(0,10)).length>=5)return json({message:'Límite de cinco solicitudes de prueba al día'},429);
+      const now=new Date().toISOString(),r={id:fixtureUUID(),entry_id:entry.id,entry_name:entry.id==='taller'?business.business_name:entry.name,requester_id:profile.id,requester_name:profile.display_name,provider_id:entry.owner_id,body:text,contact:number,consent:true,status:'pending',response:'',thread:[],created_at:now,updated_at:now};connectionRequests.push(r);return json({id:r.id,status:r.status,updated_at:r.updated_at},201);
+    }
+    if(path==='/rest/v1/rpc/cc_connection_requests'){
+      if(params.has('guest'))return json({message:'Acceso privado'},403);
+      const rows=connectionRequests.filter(r=>r.requester_id===profile.id||r.provider_id===profile.id);
+      if(body.request_id){const r=rows.find(r=>r.id===body.request_id);if(!r)return json({message:'Solicitud no disponible para esta cuenta'},403);return json(r.status==='withdrawn'&&r.provider_id===profile.id?{...r,body:null,contact:null,thread:[]}:r);}
+      return json(rows.slice(-100).reverse().map(({id,entry_name,provider_id,requester_id,requester_name,status,created_at,updated_at})=>({id,entry_name,provider_id,requester_id,requester_name,status,created_at,updated_at})));
+    }
+    if(path==='/rest/v1/rpc/cc_connection_message'){
+      if(params.has('guest'))return json({message:'Acceso privado'},403);
+      const r=connectionRequests.find(r=>r.id===body.request_id);
+      if(!r||![r.requester_id,r.provider_id].includes(profile.id))return json({message:'Conversación no disponible'},403);
+      if(['withdrawn','declined'].includes(r.status))return json({message:'La solicitud está cerrada'},409);
+      const text=String(body.body||'').trim();if(!text||text.length>2000)return json({message:'Escribe de 1 a 2000 caracteres'},400);
+      const key=String(body.client_key||'');if(key&&!/^[a-zA-Z0-9_-]{12,80}$/.test(key))return json({message:'Identificador de envío no válido'},400);
+      const duplicate=key&&(r.thread||[]).find(m=>m.client_key===key&&m.sender_id===profile.id);
+      if(duplicate){if(duplicate.body!==text)return json({message:'Este intento ya contiene otro mensaje'},409);return json({id:r.id,status:r.status,updated_at:r.updated_at,deduplicated:true});}
+      if(connectionRequests.flatMap(item=>item.thread||[]).filter(m=>m.sender_id===profile.id&&Date.now()-Date.parse(m.created_at)<60000).length>=10)return json({message:'Espera un momento antes de enviar más mensajes'},429);
+      const now=new Date(Math.max(Date.now(),Date.parse(r.updated_at)+1)).toISOString();
+      r.thread=[...(r.thread||[]),{id:fixtureUUID(),sender_id:profile.id,body:text,created_at:now,client_key:key}].slice(-100);r.updated_at=now;
+      return json({id:r.id,status:r.status,updated_at:r.updated_at},201);
+    }
+    if(path==='/rest/v1/rpc/cc_update_connection'){
+      if(params.has('guest'))return json({message:'Acceso privado'},403);
+      const r=connectionRequests.find(r=>r.id===body.request_id);if(!r||!['pending','contacted','accepted'].includes(r.status))return json({message:'La solicitud no está disponible para cambios'},400);
+      if(body.status==='withdrawn'&&r.requester_id===profile.id)r.status='withdrawn';
+      else if(r.provider_id===profile.id&&['contacted','accepted','declined'].includes(body.status)){const response=String(body.response||'').trim();if(response.length<5||response.length>1000)return json({message:'Escribe una respuesta de 5 a 1000 caracteres'},400);r.status=body.status;r.response=response;r.thread=[...(r.thread||[]),{id:fixtureUUID(),sender_id:profile.id,body:response,created_at:new Date().toISOString()}];}
+      else return json({message:'No tienes permiso para este cambio'},403);
+      r.updated_at=new Date(Math.max(Date.now(),Date.parse(r.updated_at)+1)).toISOString();return json({id:r.id,status:r.status,updated_at:r.updated_at});
+    }
     if(path==='/rest/v1/rpc/cc_demo_registration'){
       if(!store)return json({message:'Solo disponible en esta prueba'},403);
       const type=body.account_type;if(!['person','business'].includes(type)||!normalizedPhone(body.whatsapp))return json({message:'Datos de registro incompletos'},400);

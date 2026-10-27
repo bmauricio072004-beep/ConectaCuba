@@ -51,3 +51,7 @@ Consulta PLAN_DE_TRABAJO.md para lo entregado y lo pendiente, y docs/CONTACTOS_Y
 La revisión v19 mejora compartir/WhatsApp en listados y fichas, añade vista previa de vacantes y filtros de postulaciones. Consulta docs/PRUEBA_V19.md para el recorrido. El acceso protegido de Vercel no se ha desactivado.
 
 La v20 revisa registro/contactos para reutilizar datos, añade conversaciones por postulación y suaviza el diseño móvil. Ver docs/PRUEBA_V20.md. El registro de la beta es una simulación sobre perfiles ficticios; la autenticación y el backend reales siguen pendientes de conexión y validación.
+
+## Revisión v21
+
+Nuevo inicio Explorar, solicitudes y conversación de servicios, navegación Explorar/Empleo/Actividad/Perfil y contacto integrado en los datos del perfil/negocio. Es una prueba con perfiles ficticios y sin pagos ni mapas reales. Ver docs/PRUEBA_V21.md y docs/CONEXIONES_Y_DIRECTORIO.md. La nueva apariencia es clara y sobria; conserva el logo original.

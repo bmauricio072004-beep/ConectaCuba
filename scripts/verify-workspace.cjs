@@ -23,7 +23,7 @@ function workspace(type='person',signedIn=true){
   const profile={id:'test-user',account_type:type,display_name:'Nombre de prueba',province:'La Habana',municipality:'Cerro'};
   if(signedIn)stored.set('cc_auth_session_v1',JSON.stringify({access_token:'test-session',user:{id:profile.id,email:'test@example.invalid'},expires_at:Date.now()/1000+3600}));
   const location={pathname:'/app/',search:'',hash:''};
-  const context={window:{CC_PREVIEW_STORE:{},CC_CAPABILITIES:{employmentWorkflow:true},CC_SUPABASE:{url:'https://test.invalid',key:'test'},addEventListener(){},scrollTo(){}},document:{getElementById:el,querySelector:el,querySelectorAll:()=>[],addEventListener(){},activeElement:null,body:el('body')},localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)},navigator:{standalone:false},matchMedia:()=>({matches:false}),history:{state:null,replaceState(data,_b,url){this.state=data;route.value=url;location.hash=new URL(url,'https://test.invalid').hash;},pushState(data,_b,url){this.replaceState(data,_b,url);}},location,URL,URLSearchParams,Intl,AbortController,confirm:()=>true,setTimeout,clearTimeout,
+  const context={window:{CC_PREVIEW_STORE:{},CC_CAPABILITIES:{employmentWorkflow:true,connectionDirectory:true},CC_SUPABASE:{url:'https://test.invalid',key:'test'},addEventListener(){},scrollTo(){}},document:{getElementById:el,querySelector:el,querySelectorAll:()=>[],addEventListener(){},activeElement:null,body:el('body')},localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)},navigator:{standalone:false},matchMedia:()=>({matches:false}),history:{state:null,replaceState(data,_b,url){this.state=data;route.value=url;location.hash=new URL(url,'https://test.invalid').hash;},pushState(data,_b,url){this.replaceState(data,_b,url);}},location,URL,URLSearchParams,Intl,AbortController,confirm:()=>true,setTimeout,clearTimeout,
   fetch:async url=>({status:200,ok:true,json:async()=>{
     if(url.includes('/profiles?'))return [profile];
     if(url.includes('/business_applications?'))return [{review_status:'approved',email_confirmed:true,business_name:'Negocio de prueba'}];
@@ -31,20 +31,22 @@ function workspace(type='person',signedIn=true){
     return [];
   }})};
   const source=fs.readFileSync('auth.js','utf8').replace('  init();','  window.testWorkspace={state,enterWorkspace,showAccount,renderAccountSettings,accountRoute,openEmployerJob,openEmployerPerson,previewWA:window.CC_PREVIEW_OPEN_WA,previewRegistration:window.CC_PREVIEW_REGISTRATION};');
+  vm.runInNewContext(fs.readFileSync('explore.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync('workflow.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync('hiring.js','utf8'),context);vm.runInNewContext(fs.readFileSync('opportunities.js','utf8'),context);vm.runInNewContext(source,context);
   return {api:context.window.testWorkspace,el,route};
 }
 (async()=>{
-  let w=workspace();await w.api.enterWorkspace();assert.equal(w.route.value,'/app/#empleos');assert.equal(w.el('account-app').hidden,true);assert.equal(w.el('account-resume-link').hidden,true);
-  w=workspace('business');await w.api.enterWorkspace();assert.equal(w.route.value,'/app/#cuenta/jobs');assert.equal(w.el('account-app').hidden,false);assert.equal(w.el('account-resume-link').hidden,true);assert.equal(w.el('account-jobs-link').hidden,false);
+  let w=workspace();await w.api.enterWorkspace();assert.equal(w.route.value,'/app/#explorar');assert.equal(w.el('account-app').hidden,false);assert.equal(w.el('account-resume-link').hidden,true);
+  w=workspace('business');await w.api.enterWorkspace();assert.equal(w.route.value,'/app/#explorar');assert.equal(w.el('account-app').hidden,false);assert.equal(w.el('account-resume-link').hidden,true);assert.equal(w.el('account-jobs-link').hidden,false);
   w=workspace();w.api.state.afterLoginPage='resume';await w.api.enterWorkspace();assert.equal(w.route.value,'/app/#cuenta/resume');assert.match(w.el('account-content').innerHTML,/Crea tu currículum/);
   w.api.state.isAdmin=true;assert.match(w.api.renderAccountSettings(),/data-account-page="admin"/);assert(w.api.renderAccountSettings().includes('data-account-page="resume"'));assert(!w.api.renderAccountSettings().includes('data-account-page="applications"'));
   w=workspace('person',false);await w.api.showAccount('resume');assert.equal(w.api.state.afterLoginPage.page,'resume');assert.equal(w.el('modal').hidden,false);assert.match(w.el('modal-content').innerHTML,/data-form="login"/);assert.equal(w.route.value,'/app/');
   w=workspace('person',false);await w.api.showAccount('saved',false);assert.equal(w.route.value,'/app/#guardadas');assert.equal(w.el('body').dataset.appView,'saved');assert.equal(w.api.state.afterLoginPage,null);assert.match(w.el('account-content').innerHTML,/Guarda las ofertas/);
   w=workspace();await w.api.showAccount('menu',false);assert.equal(w.el('body').dataset.appView,'menu');assert(!w.api.renderAccountSettings().includes('data-account-page="saved"'),'Saved jobs belong beside discovery, not in account settings');assert(w.api.renderAccountSettings().includes('Mi perfil'));assert(w.api.renderAccountSettings().includes('Ajustes'));
 
-  await w.api.showAccount('contacts',false);assert.match(w.el('account-content').innerHTML,/data-form="workflow-person-contact"/);assert.equal(w.route.value,'/app/#cuenta/contacts');
+  assert(!w.api.renderAccountSettings().includes('data-account-page="contacts"'),'Contact must live inside the profile, not as a separate menu item');
+  await w.api.showAccount('contacts',false);assert.match(w.el('account-content').innerHTML,/data-form="profile"/);assert.equal(w.route.value,'/app/#cuenta/profile');
   await w.api.showAccount('notifications',false);assert.match(w.el('account-content').innerHTML,/Estás al día/);
   await w.api.showAccount('help',false);assert.match(w.el('account-content').innerHTML,/Qué comparto al postularme/);
   w.api.previewWA('https://wa.me/5300000000?text='+encodeURIComponent('<script>example</script>'));assert.match(w.el('modal-content').innerHTML,/Mensaje preparado/);assert(!w.el('modal-content').innerHTML.includes('<script>'));assert(w.el('modal-content').innerHTML.includes('&lt;script&gt;'));

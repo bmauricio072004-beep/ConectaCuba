@@ -1,6 +1,6 @@
 {
   "name": "conectacuba",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "private": true,
   "description": "ConectaCuba v17 source and isolated online review",
   "engines": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "node scripts/build-hosted-preview.cjs",
-    "test": "node scripts/build-preview.cjs && node scripts/verify-preview.cjs && node scripts/verify-workspace.cjs && node scripts/verify-hiring.cjs && node scripts/verify-session-lifecycle.cjs && node scripts/verify-opportunities.cjs && node scripts/verify-workflow.cjs && node scripts/verify-drafts.cjs && node scripts/verify-hosted-build.cjs && node scripts/verify-badges.cjs && node scripts/verify-conversations.cjs",
+    "test": "node scripts/build-preview.cjs && node scripts/verify-preview.cjs && node scripts/verify-workspace.cjs && node scripts/verify-hiring.cjs && node scripts/verify-session-lifecycle.cjs && node scripts/verify-opportunities.cjs && node scripts/verify-workflow.cjs && node scripts/verify-drafts.cjs && node scripts/verify-hosted-build.cjs && node scripts/verify-badges.cjs && node scripts/verify-conversations.cjs && node scripts/verify-explore.cjs",
     "prepare:local": "node scripts/bootstrap-local.cjs",
     "verify:release": "node scripts/verify-release.cjs"
   }

@@ -15,7 +15,7 @@ function workspace(initial=authSession()){
   const location={pathname:'/app/',search:'',hash:'',origin:'https://test.invalid'};
   const context={window:{CC_SUPABASE:{url:'https://test.invalid',key:'fixture'},addEventListener:(name,fn)=>winEvents[name]=fn,scrollTo(){}},document:{getElementById:el,querySelector:s=>s.includes('[data-dirty=')?null:el(s),querySelectorAll:()=>[],addEventListener:(name,fn)=>events[name]=fn,createElement:()=>el('toast-'+nodes.size),activeElement:null,body:Object.assign(el('body'),{append(){}})},localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)},navigator:{standalone:false},matchMedia:()=>({matches:false}),history:{state:null,replaceState(data,_b,url){this.state=data;location.hash=new URL(url,location.origin).hash;},pushState(data,_b,url){this.replaceState(data,_b,url);}},location,URL,URLSearchParams,Intl,AbortController,confirm:()=>true,setTimeout:()=>0,clearTimeout(){},fetch:async(url,opts)=>{requests.push({url,opts});return backend.fetch(url,opts);}};
   context.createImageBitmap=(...args)=>backend.bitmap(...args);
-  const source=fs.readFileSync('auth.js','utf8').replace('  init();','  window.testLifecycle={state,session,db,saveSession,rememberSession,contactLink,renderCvPreview,uploadLogo,enterWorkspace,applyJob,signup};');
+  const source=fs.readFileSync('auth.js','utf8').replace('  init();','  window.testLifecycle={state,session,db,saveSession,rememberSession,contactLink,renderCvPreview,uploadLogo,enterWorkspace,applyJob,signup,saveProfile};');
   vm.runInNewContext(fs.readFileSync('hiring.js','utf8'),context);vm.runInNewContext(fs.readFileSync('opportunities.js','utf8'),context);vm.runInNewContext(source,context);
   const api=context.window.testLifecycle;
   const signOut=()=>events.click({target:{closest:()=>({dataset:{action:'signout'},classList:{contains:()=>false},hasAttribute:()=>false,matches:()=>false})},preventDefault(){}});
@@ -57,6 +57,16 @@ function workspace(initial=authSession()){
   w=workspace();vm.runInNewContext(fs.readFileSync('workflow.js','utf8'),w.context);w.backend.fetch=async()=>response({});
   await w.api.signup({dataset:{}},{email:'demo@example.invalid',password:'example-password-not-real',confirm_password:'example-password-not-real',contact_person:'Responsable de prueba',province:'La Habana',municipality:'Cerro',whatsapp:'55550199',business_name:'Taller de prueba',contact_hours:'9 a 17',contact_visibility:'invited'},'business');
   const signUp=w.requests.find(r=>r.url.includes('/auth/v1/signup'));const metadata=JSON.parse(signUp.opts.body).data;assert.equal(metadata.whatsapp,'+5355550199');assert.equal(metadata.contact_hours,'9 a 17');assert.equal(metadata.contact_visibility,'invited');
+
+  // One personal-data form saves the contact used by applications and CV.
+  w=workspace();vm.runInNewContext(fs.readFileSync('workflow.js','utf8'),w.context);w.api.state.profile=w.profile;let contactResume={user_id:OWNER,cv_contact:'+5355550100'};
+  w.backend.fetch=async(url,options={})=>{
+    if(url.includes('/profiles?')){if(options.method==='PATCH')Object.assign(w.profile,JSON.parse(options.body));return response([w.profile]);}
+    if(url.includes('/resumes')){if(options.method==='PATCH')Object.assign(contactResume,JSON.parse(options.body));return response([contactResume]);}
+    return response(url.includes('cc_is_admin')?false:[]);
+  };
+  await w.api.saveProfile({dataset:{}},{display_name:'Persona editada',province:'La Habana',municipality:'Cerro',address:'',contact_recovery:'',public_contact:'WhatsApp',public_contact_other:'',whatsapp:'55550177'});
+  assert.equal(contactResume.cv_contact,'+5355550177');assert.equal(w.profile.display_name,'Persona editada');assert(w.el('account-content').innerHTML.includes('name="whatsapp"'));
 
   // Concurrent requests share one refresh while the account remains active.
   w=workspace(authSession('old',OWNER,true));let gate=deferred();w.backend.fetch=()=>gate.promise;
