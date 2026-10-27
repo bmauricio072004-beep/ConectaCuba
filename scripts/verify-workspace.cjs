@@ -23,14 +23,14 @@ function workspace(type='person',signedIn=true){
   const profile={id:'test-user',account_type:type,display_name:'Nombre de prueba',province:'La Habana',municipality:'Cerro'};
   if(signedIn)stored.set('cc_auth_session_v1',JSON.stringify({access_token:'test-session',user:{id:profile.id,email:'test@example.invalid'},expires_at:Date.now()/1000+3600}));
   const location={pathname:'/app/',search:'',hash:''};
-  const context={window:{CC_CAPABILITIES:{employmentWorkflow:true},CC_SUPABASE:{url:'https://test.invalid',key:'test'},addEventListener(){},scrollTo(){}},document:{getElementById:el,querySelector:el,querySelectorAll:()=>[],addEventListener(){},activeElement:null,body:el('body')},localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)},navigator:{standalone:false},matchMedia:()=>({matches:false}),history:{state:null,replaceState(data,_b,url){this.state=data;route.value=url;location.hash=new URL(url,'https://test.invalid').hash;},pushState(data,_b,url){this.replaceState(data,_b,url);}},location,URL,URLSearchParams,Intl,AbortController,setTimeout,clearTimeout,
+  const context={window:{CC_PREVIEW_STORE:{},CC_CAPABILITIES:{employmentWorkflow:true},CC_SUPABASE:{url:'https://test.invalid',key:'test'},addEventListener(){},scrollTo(){}},document:{getElementById:el,querySelector:el,querySelectorAll:()=>[],addEventListener(){},activeElement:null,body:el('body')},localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)},navigator:{standalone:false},matchMedia:()=>({matches:false}),history:{state:null,replaceState(data,_b,url){this.state=data;route.value=url;location.hash=new URL(url,'https://test.invalid').hash;},pushState(data,_b,url){this.replaceState(data,_b,url);}},location,URL,URLSearchParams,Intl,AbortController,setTimeout,clearTimeout,
   fetch:async url=>({status:200,ok:true,json:async()=>{
     if(url.includes('/profiles?'))return [profile];
     if(url.includes('/business_applications?'))return [{review_status:'approved',email_confirmed:true,business_name:'Negocio de prueba'}];
     if(url.includes('/rpc/cc_is_admin'))return false;
     return [];
   }})};
-  const source=fs.readFileSync('auth.js','utf8').replace('  init();','  window.testWorkspace={state,enterWorkspace,showAccount,renderAccountSettings,accountRoute,openEmployerJob,openEmployerPerson};');
+  const source=fs.readFileSync('auth.js','utf8').replace('  init();','  window.testWorkspace={state,enterWorkspace,showAccount,renderAccountSettings,accountRoute,openEmployerJob,openEmployerPerson,previewWA:window.CC_PREVIEW_OPEN_WA};');
   vm.runInNewContext(fs.readFileSync('workflow.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync('hiring.js','utf8'),context);vm.runInNewContext(fs.readFileSync('opportunities.js','utf8'),context);vm.runInNewContext(source,context);
   return {api:context.window.testWorkspace,el,route};
@@ -47,6 +47,8 @@ function workspace(type='person',signedIn=true){
   await w.api.showAccount('contacts',false);assert.match(w.el('account-content').innerHTML,/data-form="workflow-person-contact"/);assert.equal(w.route.value,'/app/#cuenta/contacts');
   await w.api.showAccount('notifications',false);assert.match(w.el('account-content').innerHTML,/Estás al día/);
   await w.api.showAccount('help',false);assert.match(w.el('account-content').innerHTML,/Qué comparto al postularme/);
+  w.api.previewWA('https://wa.me/5300000000?text='+encodeURIComponent('<script>example</script>'));assert.match(w.el('modal-content').innerHTML,/Mensaje preparado/);assert(!w.el('modal-content').innerHTML.includes('<script>'));assert(w.el('modal-content').innerHTML.includes('&lt;script&gt;'));
+  const prior=w.el('modal-content').innerHTML;w.api.previewWA('javascript:alert(1)');assert.equal(w.el('modal-content').innerHTML,prior);
   w=workspace('business');await w.api.showAccount('contacts',false);assert.match(w.el('account-content').innerHTML,/data-form="workflow-business-contact"/);
   w.api.state.isAdmin=true;assert.match(w.api.renderAccountSettings(),/data-account-page="reports"/);
   const events={};

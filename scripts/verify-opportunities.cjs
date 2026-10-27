@@ -31,7 +31,7 @@ function setup(search=''){
   }
   const sandbox={window:{},URLSearchParams,localStorage:{getItem:key=>stored.get(key)||null,setItem:(key,value)=>stored.set(key,value)}};vm.runInNewContext(fs.readFileSync('opportunities.js','utf8'),sandbox);
   const api=sandbox.window.CC_OPPORTUNITIES.create({search,esc,document:{getElementById:el,querySelectorAll:()=>[]},provinces:['La Habana','Artemisa'],activities:['Comercio','Electricidad y electrónica'],getProfile:()=>profile,getJobs:()=>jobs,request:(p,o)=>query(p,o,'public'),db:(p,o)=>query(p,o,'private'),json:(method,v)=>({method,body:JSON.stringify(v)}),patchOne:async(p,v)=>{requests.push({path:p,value:v,kind:'patch'});return v;},date:v=>String(v),salaryLabel:j=>j.salary_min?'18.000 CUP / mes':'A convenir',logo:()=>'<span>Logo del negocio</span>',contactLink:esc,resumeSections:r=>'<p>'+esc(r.intro)+'</p>',field:(label,name,value)=>'<label>'+label+'<input name="'+name+'" value="'+esc(value)+'"></label>',select:(label,name,_values,value)=>'<label>'+label+'<select name="'+name+'">'+esc(value)+'</select></label>',area:(label,name,value)=>'<label>'+label+'<textarea name="'+name+'">'+esc(value)+'</textarea></label>',modal:(title,html)=>Object.assign(modal,{title,html}),closeModal(){},toast(){},confirm:()=>true,showHome:()=>navigation.push({page:'search'}),goOffer:async(id,tab,options)=>navigation.push({page:'offer',id,tab,options}),goAccount:async(page,_leave,_context,options)=>navigation.push({page,options}),requireLogin:()=>navigation.push({page:'login'}),clearSearchURL(){},setSearchURL(){},setApplications(){},getRoute:()=>route});
-  const click=dataset=>({target:{closest:()=>({dataset,disabled:false,hasAttribute:name=>name==='data-search-reset'&&Object.hasOwn(dataset,'searchReset'),remove(){}})}});
+  const click=dataset=>({target:{closest:()=>({dataset,disabled:false,hasAttribute:name=>(name==='data-search-reset'&&Object.hasOwn(dataset,'searchReset'))||(name==='data-application-filter'&&Object.hasOwn(dataset,'applicationFilter')),remove(){}})}});
   return {api,nodes,el,requests,navigation,profile,jobs,serverJobs,stored,applications,reviews,delays,route,modal,click};
 }
 (async()=>{
@@ -54,6 +54,9 @@ function setup(search=''){
   assert(!freshReviews.includes('Sin valoraciones todavía'),'A newly approved review must update the rating even when the offer is cached');
 
   html=await t.api.renderApplications();assert(html.includes('Seleccionada'));assert(!html.includes('PRIVATE_CV'));assert(!html.includes('PRIVATE_CONTACT'));
+  await t.api.handleClick(t.click({applicationFilter:'reviewing'}));html=await t.api.renderApplications();assert(!html.includes('data-view-application="'+APP+'"'));assert(html.includes('No hay postulaciones en este estado'));
+  await t.api.handleClick(t.click({applicationFilter:'accepted'}));html=await t.api.renderApplications();assert(html.includes('data-view-application="'+APP+'"'));
+  await t.api.handleClick(t.click({applicationFilter:''}));
   const list=t.requests.find(r=>r.path.includes('job_applications?')&&!r.path.includes('id=eq.'+APP));assert(list.path.includes('applicant_id=eq.'+PERSON));assert(!list.path.includes('cv_snapshot'));assert(!list.path.includes('contact'));
   html=await t.api.renderApplication(APP);assert(html.includes('El negocio aceptó tu postulación'));assert(html.includes('PRIVATE_CV'));assert(html.includes('PRIVATE_CONTACT'));assert(html.includes('Información de la oferta'));
   t.applications[0].status='not_selected';html=await t.api.renderApplication(APP);assert(html.includes('No seleccionada'));assert(html.includes('no continuará'));

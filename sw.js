@@ -1,5 +1,5 @@
-const CACHE='conectacuba-shell-v18';
-const SHELL=['/','/app/','/landing.css?v=18','/landing.js?v=18','/styles.css?v=18','/app.css?v=18','/hiring.css?v=18','/hiring.js?v=18','/workflow.js?v=18','/drafts.js?v=18','/workflow.css?v=18','/opportunities.js?v=18','/ios.css?v=18','/auth-config.js?v=18','/auth.js?v=18','/manifest.webmanifest','/icon.svg','/icon-192.png','/icon-512.png'];
+const CACHE='conectacuba-shell-v19';
+const SHELL=['/','/app/','/landing.css?v=19','/landing.js?v=19','/styles.css?v=19','/app.css?v=19','/hiring.css?v=19','/hiring.js?v=19','/workflow.js?v=19','/drafts.js?v=19','/workflow.css?v=19','/opportunities.js?v=19','/ios.css?v=19','/auth-config.js?v=19','/auth.js?v=19','/manifest.webmanifest','/icon.svg','/icon-192.png','/icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('conectacuba-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{

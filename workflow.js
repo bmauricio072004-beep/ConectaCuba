@@ -12,6 +12,7 @@
   const label=s=>({submitted:'Enviada',reviewing:'En revisión',contacted:'Invitación a entrevista',accepted:'Seleccionada',not_selected:'No seleccionada',withdrawn:'Retirada'}[s]||'Enviada');
   function meetingDate(value){if(!value)return '';const d=new Date(value);return Number.isFinite(d.getTime())?new Intl.DateTimeFormat('es',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Havana'}).format(d)+' · hora de Cuba':'';}
   function create(ctx){
+    let pendingJobForm=null,pendingJobOwner=null,noticeRows=[],noticeOwner=null,noticeAt=0,noticeEpoch=0;
     const capable=()=>window.CC_CAPABILITIES?.employmentWorkflow===true;
     const user=()=>ctx.getProfile?.();
     const key=(type,id='')=>'cc_workflow_'+type+'_'+(user()?.id||'guest')+'_'+id;
@@ -37,6 +38,45 @@
       if(!b?.shared||(!phone(b.whatsapp)&&!phone(b.phone)))return '<section class="soft-card workflow-contact"><h2>Contacto del negocio</h2><p>El negocio comparte su contacto al invitar o seleccionar a una persona. Revisa aquí las novedades de tu postulación.</p></section>';
       const message='Hola, te contacto por la vacante '+jobTitle+' en '+(b.business_name||'tu negocio')+'.';
       return '<section class="soft-card workflow-contact"><h2>Contacto del negocio</h2><p><strong>'+esc(b.contact_person||b.business_name)+'</strong></p>'+(b.contact_hours?'<p>Horario: '+esc(b.contact_hours)+'</p>':'')+(phone(b.whatsapp)?'<p>'+esc(phone(b.whatsapp))+'</p><a class="btn btn-primary" href="'+esc(whatsapp(b.whatsapp,message))+'" target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>':'')+(phone(b.phone)?'<p><a class="contact-link" href="tel:'+esc(phone(b.phone))+'">Llamar al teléfono alternativo</a></p>':'')+'<p class="small-note">Revisa el mensaje antes de enviarlo. ConectaCuba no envía mensajes en tu nombre.</p></section>';
+    }
+    function jobPreview(data){
+      const min=data.salary_min==null||data.salary_min===''?null:Number(data.salary_min),max=data.salary_max==null||data.salary_max===''?null:Number(data.salary_max);
+      if([min,max].some(n=>n!==null&&(!Number.isFinite(n)||n<0))||(min!==null&&max!==null&&min>max))throw new Error('Revisa el rango salarial antes de continuar.');
+      const job={...data,salary_min:min,salary_max:max,work_schedule:data.work_schedule==='Otro'?data.work_schedule_other:data.work_schedule};
+      return '<section class="offer-identity"><h2>'+esc(job.title)+'</h2><p>'+esc([job.municipality,job.province].filter(Boolean).join(', '))+'</p><p><strong>'+esc(ctx.salaryLabel?.(job)||'Salario a convenir')+'</strong></p><p>'+esc([job.work_modality,job.work_schedule].filter(Boolean).join(' · '))+'</p></section><section class="offer-description"><h3>Descripción, funciones y requisitos</h3><p class="preserve-lines">'+esc(job.description)+'</p></section><p class="small-note">Revisa el horario, los requisitos y las condiciones. Esta vista previa todavía no guarda ni publica la vacante.</p>';
+    }
+    function paintBadges(){
+      if(typeof document==='undefined'||typeof document.createElement!=='function')return;
+      document.querySelectorAll('.workflow-badge').forEach(node=>node.remove());
+      const business=user()?.account_type==='business',count=noticeOwner===user()?.id?noticeRows.filter(isNew).length:0;
+      const targets=business?['account-jobs-link','mobile-jobs']:['account-applications-link','mobile-activity'];
+      for(const id of ['account-jobs-link','mobile-jobs','account-applications-link','mobile-activity']){const node=document.getElementById(id);if(node?.dataset.workflowLabel){node.removeAttribute('aria-label');delete node.dataset.workflowLabel;}}
+      if(!count)return;
+      for(const id of targets){const node=document.getElementById(id);if(!node)continue;const badge=document.createElement('span');badge.className='workflow-badge';badge.setAttribute('aria-hidden','true');badge.textContent=count>99?'99+':String(count);node.append(badge);node.dataset.workflowLabel='true';node.setAttribute('aria-label',(business?'Vacantes':'Postulaciones')+': '+count+' novedades');}
+    }
+    async function refreshBadges(force=false){
+      if(typeof document==='undefined'||typeof document.createElement!=='function'||!user()?.id)return;
+      const id=user().id,business=user().account_type==='business';
+      if(!force&&noticeOwner===id&&Date.now()-noticeAt<30000){paintBadges();return;}
+      const epoch=++noticeEpoch,filter=business?'business_user_id':'applicant_id';
+      const rows=await ctx.db('job_applications?'+filter+'=eq.'+id+'&select=id,status,created_at,updated_at&order=updated_at.desc&limit=100');
+      if(epoch!==noticeEpoch||user()?.id!==id)return;
+      noticeOwner=id;noticeRows=rows||[];noticeAt=Date.now();paintBadges();
+    }
+    function reset(){pendingJobForm=null;pendingJobOwner=null;noticeEpoch++;noticeOwner=null;noticeRows=[];noticeAt=0;paintBadges();}
+    function shareButton(job){
+      return job?.status==='published'?'<button type="button" class="text-btn" data-workflow-share="'+esc(job.id)+'" aria-label="Compartir '+esc(job.title)+'">Compartir oferta</button>':'';
+    }
+    function publicContactButton(b,job){
+      if(b?.shared===false)return '';
+      const url=whatsapp(b?.whatsapp,'Hola, me interesa la vacante '+(job?.title||'publicada')+' en '+(job?.business_name||'tu negocio')+'. ¿Podrían orientarme?');
+      return url?'<a class="text-btn workflow-wa-inline" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" aria-label="Contactar al negocio por WhatsApp sobre '+esc(job?.title||'la oferta')+'">WhatsApp del negocio</a>':'';
+    }
+    function candidateContact(a,job){
+      if(user()?.account_type!=='business'||!a||a.status==='withdrawn')return '';
+      const normalized=phone(a.contact);if(!normalized)return '';
+      const message='Hola, te contactamos de '+(job?.business_name||'nuestro negocio')+' por tu postulación a '+(job?.title||'la vacante')+'.';
+      return '<a class="btn btn-primary" href="'+esc(whatsapp(normalized,message))+'" target="_blank" rel="noopener noreferrer">Abrir WhatsApp de la persona</a><p><a class="contact-link" href="tel:'+esc(normalized)+'">Llamar al '+esc(normalized)+'</a></p><p class="small-note">Usa este contacto únicamente para el proceso de esta vacante. El mensaje no se envía automáticamente.</p>';
     }
     async function publicContact(businessId,jobTitle=''){
       if(!capable())return '';
@@ -64,12 +104,13 @@
     }
     function signature(a){return [a.status,a.updated_at].join('|');}
     function isNew(a){return read('seen',a.id)!==signature(a);}
-    function markSeen(a){write('seen',a.id,signature(a));}
+    function markSeen(a){write('seen',a.id,signature(a));paintBadges();}
     function novelty(a){return isNew(a)?'<span class="workflow-new">Novedad</span>':'';}
     async function renderNotifications(){
       const business=user()?.account_type==='business';
       const filter=business?'business_user_id':'applicant_id';
       const rows=await ctx.db('job_applications?'+filter+'=eq.'+user().id+'&select=id,job_id,job_title,business_name,status,created_at,updated_at&order=updated_at.desc&limit=100');
+      noticeOwner=user().id;noticeRows=rows||[];noticeAt=Date.now();paintBadges();
       const news=(rows||[]).filter(isNew);
       return back+'<section class="soft-card"><h1>Novedades</h1><p>Consulta aquí los cambios recientes. Los avisos se actualizan al abrir esta pantalla y se marcan como vistos al abrir el detalle.</p><button class="btn btn-outline" data-account-page="notifications">Actualizar</button></section><div class="application-list">'+(news.length?news.map(a=>'<button class="application-card" '+(business?'data-hiring-person="'+a.id+'" data-job-id="'+a.job_id+'"':'data-view-application="'+a.id+'"')+'><strong>'+esc(a.job_title)+'</strong><span>'+esc(a.business_name)+'</span><span>'+esc(a.status==='contacted'?'En coordinación':label(a.status))+'</span><small>'+esc(ctx.date(a.updated_at||a.created_at))+'</small></button>').join(''):'<section class="soft-card"><h2>Estás al día</h2><p>No hay novedades sin consultar en este dispositivo.</p></section>')+'</div>';
     }
@@ -132,6 +173,23 @@
     }
     async function handleClick(e){
       const b=e.target.closest('button,a');if(!b)return false;
+      if(b.hasAttribute('data-workflow-preview-job')){
+        const form=b.closest('form');if(!form||!form.reportValidity())return true;
+        const values=Object.fromEntries(new FormData(form).entries());
+        const html=jobPreview(values);pendingJobForm=form;pendingJobOwner=user()?.id;
+        ctx.modal('Vista previa de la vacante',html+'<div class="form-actions"><button class="btn btn-outline" type="button" data-close-modal>Volver a editar</button><button class="btn btn-primary" type="button" data-workflow-submit-job>'+(form.dataset.id?'Guardar cambios':'Publicar vacante')+'</button></div>');return true;
+      }
+      if(b.hasAttribute('data-workflow-submit-job')){
+        const form=pendingJobForm,owner=pendingJobOwner;reset();ctx.closeModal();
+        if(form?.isConnected&&owner===user()?.id)form.requestSubmit();else ctx.toast('La vista cambió. Abre de nuevo el editor de la vacante.');
+        return true;
+      }
+      if(b.hasAttribute('data-workflow-copy-message')){
+        const text=document.getElementById('workflow-preview-message')?.value||'';
+        if(!text)return true;
+        try{await navigator.clipboard.writeText(text);ctx.toast('Mensaje copiado. No se envió a WhatsApp.');}catch{ctx.toast('Mantén pulsado el texto para copiarlo manualmente.');}
+        return true;
+      }
       if(b.dataset.workflowReport){await report(b.dataset.workflowReport);return true;}
       if(b.dataset.workflowReviewed){await rpc('cc_reports_moderation',{report_id:b.dataset.workflowReviewed,status:'reviewed'});await ctx.goAccount('reports',false);ctx.toast('Reporte marcado como revisado.');return true;}
       if(b.dataset.workflowShare){
@@ -145,7 +203,7 @@
       if(b.hasAttribute('data-workflow-clear-drafts')){if(ctx.confirm('¿Eliminar los borradores de esta cuenta en esta pestaña?')){try{const s=storage(),prefix=key('draft');const keys=[];for(let i=0;i<s.length;i++){const k=s.key(i);if(k?.startsWith(prefix))keys.push(k);}keys.forEach(k=>s.removeItem(k));ctx.toast('Borradores eliminados.');}catch{ctx.toast('No se pudo acceder al almacenamiento.');}}return true;}
       return false;
     }
-    return {capable,settingsLinks,renderContacts,renderNotifications,renderHelp,renderReports,contactCard,publicContact,applicationExtras,employerPanel,novelty,markSeen,handleSubmit,handleClick,cubaToISO};
+    return {capable,reset,refreshBadges,jobPreview,shareButton,publicContactButton,candidateContact,settingsLinks,renderContacts,renderNotifications,renderHelp,renderReports,contactCard,publicContact,applicationExtras,employerPanel,novelty,markSeen,handleSubmit,handleClick,cubaToISO};
   }
   window.CC_WORKFLOW={phone,whatsapp,label,meetingDate,create};
 })();

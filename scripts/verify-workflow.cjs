@@ -5,10 +5,10 @@ const OWNER='11111111-1111-4111-8111-111111111111',PERSON='11111111-1111-4111-81
 let shared=null;const store={read:()=>shared?JSON.parse(JSON.stringify(shared)):null,write:value=>shared=JSON.parse(JSON.stringify(value))};
 function client(role,admin=false){
  const sessionValues=new Map();
- const ctx={URL,URLSearchParams,Response,Date,Intl,crypto:require('node:crypto').webcrypto,location:{origin:'https://preview.invalid',search:'?role='+role+'&catalog=1'+(admin?'&admin=1':'')},CC_PREVIEW_STORE:store,sessionStorage:{getItem:k=>sessionValues.get(k)||null,setItem:(k,v)=>sessionValues.set(k,String(v)),removeItem:k=>sessionValues.delete(k)},fetch:()=>{throw Error('Unexpected network request')}};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(fixture,ctx);vm.runInContext(source,ctx);
+ const ctx={URL,URLSearchParams,Response,Date,Intl,crypto:require('node:crypto').webcrypto,location:{origin:'https://preview.invalid',search:'?role='+role+'&catalog=1'+(admin?'&admin=1':'')},CC_PREVIEW_STORE:store,navigator:{share:async()=>{},clipboard:{writeText:async()=>{}}},sessionStorage:{getItem:k=>sessionValues.get(k)||null,setItem:(k,v)=>sessionValues.set(k,String(v)),removeItem:k=>sessionValues.delete(k)},fetch:()=>{throw Error('Unexpected network request')}};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(fixture,ctx);vm.runInContext(source,ctx);
  const call=async(path,body,method='POST')=>{const r=await ctx.fetch(ctx.CC_SUPABASE.url+path,{method,...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,body:await r.json()};};
  const profile={id:role==='person'?PERSON:OWNER,account_type:role==='person'?'person':'business'};
- const workflow=ctx.CC_WORKFLOW.create({getProfile:()=>profile,date:value=>String(value),request:async path=>(await call(path,null,'GET')).body,db:async(path,options={})=>{const r=await call('/rest/v1/'+path,options.body?JSON.parse(options.body):null,options.method||'GET');if(r.status>=400)throw Error(r.body.message);return r.body;},patchOne:async()=>{},goAccount:async()=>{},toast(){},confirm:()=>true});
+ const workflow=ctx.CC_WORKFLOW.create({getProfile:()=>profile,date:value=>String(value),salaryLabel:job=>String(job.salary_min)+' CUP / mes',request:async path=>(await call(path,null,'GET')).body,db:async(path,options={})=>{const r=await call('/rest/v1/'+path,options.body?JSON.parse(options.body):null,options.method||'GET');if(r.status>=400)throw Error(r.body.message);return r.body;},patchOne:async()=>{},goAccount:async()=>{},toast(){},confirm:()=>true});
  return {call,workflow,api:ctx.CC_WORKFLOW,ctx};
 }
 (async()=>{
@@ -21,7 +21,21 @@ function client(role,admin=false){
  let result=await person.call('/rest/v1/rpc/cc_business_contact',{business_id:OWNER,application_id:APP});assert.equal(result.body.shared,false);assert(!Object.hasOwn(result.body,'whatsapp'));assert(!Object.hasOwn(result.body,'phone'));
  result=await person.call('/rest/v1/business_directory',null,'GET');assert.equal(result.body[0].whatsapp,'');
  result=await person.call('/rest/v1/rpc/cc_application_next_step',{application_id:APP,job_id:JOB,status:'accepted',employer_message:'Intento no permitido'});assert.equal(result.status,403);
+ assert.equal(person.workflow.candidateContact({status:'submitted',contact:'+5355550100'},{title:'Puesto'}),'');
+ assert.equal(person.workflow.publicContactButton({whatsapp:''},{id:JOB,title:'Puesto'}),'');
+ assert.equal(person.workflow.publicContactButton({shared:false,whatsapp:'+5355550100'},{title:'Puesto'}),'');
+ assert.throws(()=>person.workflow.jobPreview({salary_min:'100',salary_max:'50'}),/rango salarial/);
+ const preview=person.workflow.jobPreview({title:'Puesto <img>',description:'Texto <script>no</script>',salary_min:'100',salary_max:'200',municipality:'Cerro',province:'La Habana',work_modality:'Presencial',work_schedule:'Otro',work_schedule_other:'Mañanas',salary_currency:'CUP',salary_period:'monthly'});
+ assert(preview.includes('Puesto &lt;img&gt;'));assert(preview.includes('100 CUP / mes'));assert(preview.includes('Mañanas'));assert(!preview.includes('<script>'));
+ assert.equal(person.workflow.shareButton({id:JOB,title:'Puesto',status:'closed'}),'');
+ assert(person.workflow.shareButton({id:JOB,title:'Puesto <img>',status:'published'}).includes('Compartir Puesto &lt;img&gt;'));
+ let sharedLink=null;person.ctx.navigator.share=async data=>{sharedLink=data.url;};
+ await person.workflow.handleClick({target:{closest:()=>({dataset:{workflowShare:JOB},hasAttribute:()=>false})}});
+ assert.equal(sharedLink,'https://preview.invalid/app/#oferta/'+JOB);
  let business=client('business');
+ assert(business.workflow.candidateContact({status:'submitted',contact:'+5355550100'},{title:'Puesto',business_name:'Negocio de prueba'}).includes('https://wa.me/5355550100?text='));
+ assert.equal(business.workflow.candidateContact({status:'withdrawn',contact:'+5355550100'},{title:'Puesto'}),'');
+ assert.equal(business.workflow.candidateContact({status:'submitted',contact:'javascript:alert(1)'},{title:'Puesto'}),'');
  const contact={whatsapp:'+5355550100',phone:'',contact_person:'Responsable <img>',contact_hours:'9 a 17',visibility:'public'};
  result=await business.call('/rest/v1/rpc/cc_save_business_contact',contact);assert.equal(result.status,200);
  person=client('person');result=await person.call('/rest/v1/rpc/cc_business_contact',{business_id:OWNER});assert.equal(result.body.shared,true);assert.equal(result.body.whatsapp,'+5355550100');

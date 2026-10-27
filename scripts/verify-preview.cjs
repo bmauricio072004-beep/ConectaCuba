@@ -60,6 +60,11 @@ function client(role,{script=fixture,search='?role='+role+'&catalog=1'}={}){
    handlers.submit({target:{dataset:{form}},preventDefault(){prevented=true;},stopImmediatePropagation(){stopped=true;}});
    assert(stopped&&prevented);
  }
+ let previewLink=null;context.CC_PREVIEW_OPEN_WA=url=>{previewLink=url;};
+ const fakeLink={id:'',dataset:{},href:'https://wa.me/5300000000?text=Hola',getAttribute:()=> 'https://wa.me/5300000000?text=Hola',closest:()=>null};
+ let stoppedWA=false,preventedWA=false;
+ handlers.click({target:{closest:selector=>selector==='button,a,input'||selector==='a'?fakeLink:null},preventDefault(){preventedWA=true;},stopImmediatePropagation(){stoppedWA=true;}});
+ assert(stoppedWA&&preventedWA);assert.equal(previewLink,fakeLink.href);
  const svg=Buffer.from(fs.readFileSync('icon.svg')).toString('base64');assert(html.includes(svg));
  console.log('PASS: consentimiento, postulación, duplicados, persistencia entre roles, guardadas, estados, retirada, controles bloqueados, roles normalizados, scripts autónomos y logo original. Prueba de simulador; no sustituye QA visual ni permisos del backend real.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

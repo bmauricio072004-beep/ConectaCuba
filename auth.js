@@ -21,6 +21,7 @@
     if(!!before?.access_token!==!!s?.access_token||before?.user?.id!==s?.user?.id)sessionEpoch++;
   }
   function clearPrivateAccount(){
+    workflow?.reset();
     window.CC_DRAFTS?.clearAccount(state.profile?.id||readSession()?.user?.id);
     sessionEpoch++;state.render++;refreshPromise=null;hiring?.reset();opportunities?.reset();
     Object.assign(state,{profile:null,business:null,resume:null,isAdmin:false,applications:[],reviews:[],ownJobs:[],pendingJob:null,afterLoginPage:null,ownerJobId:null,ownerApplicationId:null,failedRoute:null});
@@ -186,7 +187,7 @@
     const {s,p}=await loadProfile();
     const result=await Promise.all([p.account_type==='business'?db('business_applications?user_id=eq.'+s.user.id+'&select=*&limit=1'):Promise.resolve([]),db('rpc/cc_is_admin',{method:'POST',body:'{}'})]);
     if(readSession()?.user?.id!==s.user.id)throw new Error('La sesión cambió. Vuelve a entrar.');
-    state.business=result[0][0]||null;state.isAdmin=result[1]===true;updateHeader();return {s,p};
+    state.business=result[0][0]||null;state.isAdmin=result[1]===true;updateHeader();workflow?.refreshBadges().catch(()=>{});return {s,p};
   }
   async function enterWorkspace(){
     const context=await loadAccountContext(),requested=state.afterLoginPage;state.afterLoginPage=null;
@@ -305,7 +306,7 @@
     return accountBack()+'<section class="soft-card account-form-card"><h2>Acceso y seguridad</h2><span class="small-note">Correo de tu cuenta</span><p class="security-email">'+esc(readSession()?.user?.email||'')+'</p><p>Usas este correo para entrar y recuperar el acceso.</p><button type="button" class="btn btn-primary" data-open="forgot">Cambiar contraseña</button></section>';
   }
   function aboutApp(){
-    modalContent('Acerca de ConectaCuba','<div class="about-app"><img src="/icon.svg" width="72" height="72" alt=""><h3>ConectaCuba</h3><span class="app-version">Versión de prueba 0.18</span><p>Una conexión entre personas que buscan trabajo y negocios que necesitan talento en Cuba.</p><div class="about-author"><span>Creado por</span><strong>Mauricio Benitez Mora</strong></div><p class="small-note">Etapa piloto · Sin costo por ahora. Los negocios se revisan antes de publicar. Tú decides cuándo compartir tu currículum y contacto al postularte.</p><a class="btn btn-outline" href="/?view=web" target="_blank" rel="noopener">Conocer el proyecto</a>'+(!(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)?'<button type="button" class="btn btn-primary" data-action="install-app">Instalar en mi teléfono</button>':'')+'</div>');
+    modalContent('Acerca de ConectaCuba','<div class="about-app"><img src="/icon.svg" width="72" height="72" alt=""><h3>ConectaCuba</h3><span class="app-version">Versión de prueba 0.19</span><p>Una conexión entre personas que buscan trabajo y negocios que necesitan talento en Cuba.</p><div class="about-author"><span>Creado por</span><strong>Mauricio Benitez Mora</strong></div><p class="small-note">Etapa piloto · Sin costo por ahora. Los negocios se revisan antes de publicar. Tú decides cuándo compartir tu currículum y contacto al postularte.</p><a class="btn btn-outline" href="/?view=web" target="_blank" rel="noopener">Conocer el proyecto</a>'+(!(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)?'<button type="button" class="btn btn-primary" data-action="install-app">Instalar en mi teléfono</button>':'')+'</div>');
   }
 
   function renderProfile(){
@@ -422,7 +423,7 @@
       field('Salario mínimo (opcional)','salary_min',j.salary_min,'type="number" min="0" max="9999999999" step="0.01" inputmode="decimal"')+
       field('Salario máximo (opcional)','salary_max',j.salary_max,'type="number" min="0" max="9999999999" step="0.01" inputmode="decimal"')+
       '<div class="field"><label for="f-salary_period">Período del salario</label><select name="salary_period" id="f-salary_period">'+Object.entries({negotiable:'A convenir',monthly:'Mensual',weekly:'Semanal',daily:'Diario',hourly:'Por hora'}).map(([key,label])=>'<option value="'+key+'"'+((j.salary_period||'negotiable')===key?' selected':'')+'>'+label+'</option>').join('')+'</select></div>'+
-      area('Descripción, funciones y requisitos *','description',j.description,5000,true)+'<div class="notice span2" role="status"></div><div class="form-actions span2">'+(id?'<button type="button" class="btn btn-outline" data-hiring-job="'+id+'">Cancelar</button>':pageButton('jobs','Cancelar','outline'))+'<button type="submit" class="btn btn-primary">'+(id?'Guardar vacante':'Publicar vacante')+'</button></div></form>';
+      area('Descripción, funciones y requisitos *','description',j.description,5000,true)+'<div class="notice span2" role="status"></div><div class="form-actions span2">'+(id?'<button type="button" class="btn btn-outline" data-hiring-job="'+id+'">Cancelar</button>':pageButton('jobs','Cancelar','outline'))+(workflow?'<button type="button" class="btn btn-outline" data-workflow-preview-job>Vista previa</button>':'')+'<button type="submit" class="btn btn-primary">'+(id?'Guardar vacante':'Publicar vacante')+'</button></div></form>';
   }
   async function saveJob(form,d){
     const min=d.salary_min===''?null:Number(d.salary_min),max=d.salary_max===''?null:Number(d.salary_max);
@@ -500,7 +501,8 @@
     if(window.CC_WORKFLOW&&!window.CC_WORKFLOW.phone(d.contact))throw new Error('Revisa tu WhatsApp e incluye el prefijo internacional.');
     const r=state.resume||{},snapshot={};
     for(const k of ['intro','experience','education','skills','languages'])snapshot[k]=r[k]||'';
-    await db('job_applications',json('POST',{job_id:form.dataset.id,applicant_id:state.profile.id,cv_snapshot:snapshot,contact:window.CC_WORKFLOW?.phone(d.contact)||d.contact.trim(),message:d.message.trim(),consent:true}));
+    const submittedRows=await db('job_applications',json('POST',{job_id:form.dataset.id,applicant_id:state.profile.id,cv_snapshot:snapshot,contact:window.CC_WORKFLOW?.phone(d.contact)||d.contact.trim(),message:d.message.trim(),consent:true}));
+    if(submittedRows?.[0])workflow?.markSeen(submittedRows[0]);
     state.pendingJob=null;form.dataset.dirty='false';closeModal();await showAccount('applications',false);toast('Postulación enviada. Puedes seguir su estado aquí.');
   }
   function renderApplications(){return opportunities.renderApplications();}
@@ -689,7 +691,7 @@
   window.addEventListener('online',()=>loadPublicData());
   window.addEventListener('beforeunload',e=>{if(document.querySelector('form[data-dirty="true"]')){e.preventDefault();e.returnValue='';}});
   workflow=window.CC_WORKFLOW?.create({
-    db,patchOne,request,esc,date,modal:modalContent,closeModal,toast,confirm:message=>confirm(message),
+    db,patchOne,request,esc,date,salaryLabel,modal:modalContent,closeModal,toast,confirm:message=>confirm(message),
     getProfile:()=>state.profile,goAccount:showAccount,goPerson:openEmployerPerson
   })||null;
   hiring=window.CC_HIRING.create({
@@ -711,6 +713,12 @@
     setSearchURL:filters=>{const params=new URLSearchParams(location.search);for(const key of ['q','province','category','municipality'])filters[key]?params.set(key,filters[key]):params.delete(key);const url=location.pathname+(params.toString()?'?'+params.toString():'')+location.hash;history.replaceState(history.state,'',url);state.lastURL=url;state.lastHistory=history.state;},
     clearSearchURL:()=>{const params=new URLSearchParams(location.search);for(const key of ['q','province','category','municipality'])params.delete(key);const url=location.pathname+(params.toString()?'?'+params.toString():'')+location.hash;history.replaceState(history.state,'',url);state.lastURL=url;state.lastHistory=history.state;}
   });
+  if(window.CC_PREVIEW_STORE)window.CC_PREVIEW_OPEN_WA=url=>{
+    let parsed;try{parsed=new URL(url);}catch{return;}
+    if(parsed.protocol!=='https:'||parsed.hostname!=='wa.me')return;
+    const message=parsed.searchParams.get('text')||'Hola, quisiera información sobre esta vacante.';
+    modalContent('WhatsApp · Mensaje de prueba','<p class="account-note">Así se preparará la conversación. Los números de esta beta son ficticios y no se abrirá ni enviará un mensaje real.</p><label class="field">Número de ejemplo<input readonly value="'+esc(parsed.pathname.slice(1))+'"></label><label class="field">Mensaje preparado<textarea id="workflow-preview-message" readonly rows="5">'+esc(message)+'</textarea></label><button type="button" class="btn btn-primary" data-workflow-copy-message>Copiar solo el mensaje</button>');
+  };
   window.addEventListener('popstate',async()=>{
     if(!allowLeave()){history.pushState(state.lastHistory,'',state.lastURL);return;}
     const route=accountRoute();if(route.page==='search')showHome('#vacantes',false,{history:'none',restore:true});

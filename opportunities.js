@@ -6,12 +6,12 @@
   window.CC_OPPORTUNITIES={create(ctx){
     const $=id=>ctx.document.getElementById(id),esc=ctx.esc;
     const params=new URLSearchParams(ctx.search||'');
-    const state={filters:{q:(params.get('q')||'').slice(0,120),province:ctx.provinces.includes(params.get('province'))?params.get('province'):'',category:ctx.activities.includes(params.get('category'))?params.get('category'):'',municipality:(params.get('municipality')||'').slice(0,100)},offer:null,company:null,tab:'offer',offerEpoch:0,offerCache:{},ratings:{},ratingsKey:'',ratingsAt:0,ratingEpoch:0,reviews:[],moreReviews:false,reviewOffset:0,reviewEpoch:0,application:null,adminFilter:'pending'};
+    const state={filters:{q:(params.get('q')||'').slice(0,120),province:ctx.provinces.includes(params.get('province'))?params.get('province'):'',category:ctx.activities.includes(params.get('category'))?params.get('category'):'',municipality:(params.get('municipality')||'').slice(0,100)},offer:null,company:null,tab:'offer',offerEpoch:0,offerCache:{},ratings:{},ratingsKey:'',ratingsAt:0,ratingEpoch:0,reviews:[],moreReviews:false,reviewOffset:0,reviewEpoch:0,application:null,applicationFilter:'',adminFilter:'pending'};
     const savedKey=()=>{const p=ctx.getProfile?.();return 'cc_saved_jobs_'+(p?.id||'guest');};
     const savedIds=()=>{try{return new Set(JSON.parse(localStorage.getItem(savedKey())||'[]').filter(id=>idOK(id)));}catch{return new Set();}};
     const saveIds=set=>{try{localStorage.setItem(savedKey(),JSON.stringify([...set]));}catch{throw new Error('Permite el almacenamiento del navegador para guardar ofertas en este dispositivo.');}};
     const isSaved=id=>savedIds().has(id);
-    let savedMissing=[],savedScope='';
+    let savedMissing=[],savedScope='',contactEpoch=0;
     function toggleSaved(id){if(!idOK(id))throw new Error('Esta oferta no está disponible.');const s=savedIds();if(!s.has(id)&&s.size>=100)throw new Error('Puedes guardar hasta 100 ofertas. Quita alguna para añadir otra.');s.has(id)?s.delete(id):s.add(id);saveIds(s);return s.has(id);}
     const idOK=id=>/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(String(id||''));
     const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -22,7 +22,7 @@
     const bookmarkIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z"/></svg>';
     function saveButton(id){return '<button type="button" class="save-job-button" data-save-job="'+id+'" aria-pressed="'+isSaved(id)+'" aria-label="'+(isSaved(id)?'Quitar oferta guardada':'Guardar oferta')+'">'+bookmarkIcon+'</button>';}
     const feedRating=id=>Number(state.ratings[id]?.review_count)>0?ratingHTML(id):'';
-    function jobRows(rows){return rows.map(j=>'<article class="feed-card-wrap"><button type="button" class="feed-card" data-view-job="'+j.id+'" aria-label="'+esc(j.title+' en '+j.business_name)+'"><strong class="feed-job-title">'+esc(j.title)+'</strong><span class="feed-company-name">'+esc(j.business_name)+' <span class="verified-mark" role="img" aria-label="Negocio revisado">✓</span> <span data-rating-for="'+j.business_user_id+'">'+feedRating(j.business_user_id)+'</span></span><span class="feed-location">'+esc([j.municipality,j.province].filter(Boolean).join(', '))+'</span><span class="feed-pay">'+esc(ctx.salaryLabel(j))+'</span><span class="feed-card-bottom"><span class="feed-conditions">'+esc([j.work_modality,j.work_schedule].filter(Boolean).join(' · '))+'</span><span>'+ctx.date(j.created_at)+'</span></span></button>'+saveButton(j.id)+'</article>').join('');}
+    function jobRows(rows){return rows.map(j=>'<article class="feed-card-wrap"><button type="button" class="feed-card" data-view-job="'+j.id+'" aria-label="'+esc(j.title+' en '+j.business_name)+'"><strong class="feed-job-title">'+esc(j.title)+'</strong><span class="feed-company-name">'+esc(j.business_name)+' <span class="verified-mark" role="img" aria-label="Negocio revisado">✓</span> <span data-rating-for="'+j.business_user_id+'">'+feedRating(j.business_user_id)+'</span></span><span class="feed-location">'+esc([j.municipality,j.province].filter(Boolean).join(', '))+'</span><span class="feed-pay">'+esc(ctx.salaryLabel(j))+'</span><span class="feed-card-bottom"><span class="feed-conditions">'+esc([j.work_modality,j.work_schedule].filter(Boolean).join(' · '))+'</span><span>'+ctx.date(j.created_at)+'</span></span></button>'+saveButton(j.id)+(ctx.workflow?'<div class="feed-contact-actions">'+ctx.workflow.shareButton(j)+'<span data-public-contact-for="'+j.id+'"></span></div>':'')+'</article>').join('');}
     const ratingHTML=(businessId,large=false)=>{
       const r=state.ratings[businessId];
       if(r===undefined)return '<span class="no-rating">Experiencias de trabajo</span>';
@@ -43,6 +43,13 @@
       $('empty').querySelector('h2').textContent=all.length?'Prueba otra búsqueda':'Las oportunidades empiezan aquí';
       $('empty-message').textContent=all.length?'No encontramos ofertas con estos filtros. Puedes cambiar la búsqueda o ver todas.':'Todavía no hay ofertas publicadas. Puedes preparar tu currículum mientras llegan.';
       $('empty').querySelector('[data-action="refresh-public"]')?.remove();
+      if(ctx.workflow&&rows.length){
+        const epoch=++contactEpoch,ids=[...new Set(rows.map(j=>j.business_user_id))];
+        publicGet('business_directory?user_id=in.('+ids.join(',')+')&select=user_id,whatsapp').then(companies=>{
+          if(epoch!==contactEpoch)return;const map=new Map((companies||[]).map(b=>[b.user_id,b]));
+          ctx.document.querySelectorAll('[data-public-contact-for]').forEach(el=>{const job=rows.find(j=>j.id===el.dataset.publicContactFor);if(job)el.innerHTML=ctx.workflow.publicContactButton(map.get(job.business_user_id),job);});
+        }).catch(()=>{});
+      }else contactEpoch++;
       const key=[...new Set(all.map(j=>j.business_user_id))].sort().join(',');
       if(key&&(key!==state.ratingsKey||Date.now()-state.ratingsAt>60000)){
         state.ratingsKey=key;state.ratingsAt=Date.now();const epoch=++state.ratingEpoch;
@@ -98,8 +105,11 @@
       return backHTML+'<section class="offer-identity"><h1>'+esc(j.title)+'</h1><button type="button" class="company-text-link" data-offer-tab="company" data-offer-id="'+id+'">'+esc(j.business_name)+' <span aria-hidden="true">›</span></button><p>'+esc([j.municipality,j.province].join(', '))+'</p><strong class="offer-salary">'+esc(ctx.salaryLabel(j))+'</strong><span class="offer-rating">'+ratingHTML(j.business_user_id)+'</span><button type="button" class="text-btn workflow-share" data-workflow-share="'+id+'">Compartir oferta</button>'+(ctx.workflow?.capable()?'<button type="button" class="text-btn workflow-share" data-workflow-report="'+id+'">Reportar oferta</button>':'')+'<span class="offer-published">Publicada el '+ctx.date(j.created_at)+'</span></section>'+offerTabs(id,tab)+'<div role="tabpanel" class="offer-tab-content">'+content+'</div><div class="offer-apply"><button class="btn btn-primary" type="button" data-apply-job="'+id+'">Postularme</button>'+saveButton(id)+'</div>';
     }
     async function renderApplications(){
-      const p=ctx.getProfile(),rows=await ctx.db('job_applications?applicant_id=eq.'+p.id+'&select=id,job_id,business_user_id,job_title,business_name,status,created_at,updated_at&order=created_at.desc&limit=100');ctx.setApplications(rows||[]);
-      return '<div class="application-list">'+(!rows?.length?'<section class="soft-card empty-reviews"><span aria-hidden="true">↗</span><h2>Tu próximo paso empieza con una oferta.</h2><p>Aquí podrás seguir las postulaciones que envíes.</p><button type="button" class="btn btn-primary" data-home="#vacantes">Explorar empleos</button></section>':rows.map(a=>'<button type="button" class="application-card" data-view-application="'+a.id+'" aria-label="'+esc(a.job_title+', '+STATUS[a.status])+'"><strong>'+esc(a.job_title)+'</strong>'+(ctx.workflow?.novelty(a)||'')+'<span class="application-company">'+esc(a.business_name)+'</span>'+status(a.status)+'<span class="application-card-foot">Actualizada el '+ctx.date(a.updated_at||a.created_at)+' <span aria-hidden="true">›</span></span></button>').join(''))+'</div>';
+      const p=ctx.getProfile(),rows=await ctx.db('job_applications?applicant_id=eq.'+p.id+'&select=id,job_id,business_user_id,job_title,business_name,status,created_at,updated_at&order=created_at.desc&limit=100');
+      const all=rows||[];ctx.setApplications(all);
+      const filtered=state.applicationFilter?all.filter(a=>a.status===state.applicationFilter):all;
+      const filters=all.length?'<div class="workflow-filters" role="group" aria-label="Filtrar mis postulaciones">'+[['','Todas'],...Object.entries(STATUS)].map(([value,title])=>'<button type="button" data-application-filter="'+value+'" aria-pressed="'+(state.applicationFilter===value)+'">'+esc(title)+' ('+(value?all.filter(a=>a.status===value).length:all.length)+')</button>').join('')+'</div>':'';
+      return filters+(all.length===100?'<p class="small-note">Se muestran las últimas 100 postulaciones.</p>':'')+'<div class="application-list">'+(!filtered.length?'<section class="soft-card empty-reviews"><span aria-hidden="true">↗</span><h2>'+(all.length?'No hay postulaciones en este estado.':'Tu próximo paso empieza con una oferta.')+'</h2><p>'+(all.length?'Prueba otro filtro para ver el resto.':'Aquí podrás seguir las postulaciones que envíes.')+'</p>'+(all.length?'<button type="button" class="btn btn-outline" data-application-filter="">Ver todas</button>':'<button type="button" class="btn btn-primary" data-home="#vacantes">Explorar empleos</button>')+'</section>':filtered.map(a=>'<button type="button" class="application-card" data-view-application="'+a.id+'" aria-label="'+esc(a.job_title+', '+STATUS[a.status])+'"><strong>'+esc(a.job_title)+'</strong>'+(ctx.workflow?.novelty(a)||'')+'<span class="application-company">'+esc(a.business_name)+'</span>'+status(a.status)+'<span class="application-card-foot">Actualizada el '+ctx.date(a.updated_at||a.created_at)+' <span aria-hidden="true">›</span></span></button>').join(''))+'</div>';
     }
     async function renderApplication(id){
       const p=ctx.getProfile();if(!idOK(id))throw new Error('No encontramos esta postulación.');
@@ -149,6 +159,7 @@
     }
     async function handleClick(event){
       const b=event.target.closest('button,a');if(!b)return false;
+      if(b.hasAttribute('data-application-filter')){const value=b.dataset.applicationFilter;if(value!==''&&!Object.hasOwn(STATUS,value))return true;state.applicationFilter=value;await ctx.goAccount('applications',false);return true;}
       if(b.dataset.action==='open-search'){openSearch();return true;}
       if(b.dataset.action==='clear-filters'){clearFilters();return true;}
       if(b.dataset.saveJob){
@@ -188,7 +199,7 @@
       return false;
     }
     function cancelOffer(){state.offerEpoch++;state.reviewEpoch++;}
-    function reset(){cancelOffer();state.application=null;state.ratingEpoch++;state.ratingsKey='';state.adminFilter='pending';savedMissing=[];savedScope='';}
+    function reset(){contactEpoch++;cancelOffer();state.application=null;state.applicationFilter='';state.ratingEpoch++;state.ratingsKey='';state.adminFilter='pending';savedMissing=[];savedScope='';}
     async function renderSaved(){
       const scope=savedKey(),ids=[...savedIds()].slice(-100).reverse();let jobs=[],cached=false;
       if(ids.length){try{jobs=await publicGet('job_posts?id=in.('+ids.join(',')+')&status=eq.published&select=*&limit=100');}catch{cached=true;jobs=ctx.getJobs().filter(j=>ids.includes(j.id));}}

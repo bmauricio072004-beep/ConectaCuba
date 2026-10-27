@@ -47,3 +47,5 @@ Consulta `DEVELOPMENT.md`, `PENDIENTES.txt` y `MARCA_Y_DISENO.txt` para los fluj
 ## Revisión v18
 
 Consulta PLAN_DE_TRABAJO.md para lo entregado y lo pendiente, y docs/CONTACTOS_Y_SELECCION.md para los contratos del backend real. La revisión añade contacto laboral, invitaciones, próximos pasos, novedades, borradores y reportes con datos ficticios. No cambia las cuentas ni los datos reales de Supabase.
+
+La revisión v19 mejora compartir/WhatsApp en listados y fichas, añade vista previa de vacantes y filtros de postulaciones. Consulta docs/PRUEBA_V19.md para el recorrido. El acceso protegido de Vercel no se ha desactivado.

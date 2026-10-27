@@ -12,9 +12,9 @@ html=html.replace(/<link\b[^>]*>/g,tag=>{
  return tag.includes('rel="icon"')?'<link rel="icon" href="'+svg+'">':'';
 });
 html=html.replaceAll('src="/icon.svg"','src="'+svg+'"');
-html=html.replace('<title>ConectaCuba · Empleos y mi cuenta</title>','<title>ConectaCuba v18 · Prueba navegable</title>');
+html=html.replace('<title>ConectaCuba · Empleos y mi cuenta</title>','<title>ConectaCuba v19 · Prueba navegable</title>');
 html=html.replace('<meta name="theme-color"',`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><meta name="theme-color"`);
-const toolbar=`<section id="preview-tools" aria-label="Controles de prueba"><div><strong>ConectaCuba v18 · Prueba</strong><small>Datos ficticios. Sin envíos reales. No introduzcas datos personales.</small></div><div><label for="preview-role">Ver como </label><select id="preview-role"><option value="person">Persona</option><option value="business">Negocio</option><option value="admin">Administración (prueba)</option></select><button type="button" id="preview-reset">Reiniciar prueba</button></div></section><style>#preview-tools{background:#103b53;color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font:12px/1.4 system-ui}#preview-tools small{display:block;color:#d3e4df;font-size:11px}#preview-tools select,#preview-tools button{font:12px system-ui;padding:7px;border:1px solid #819c9c;border-radius:5px;background:#f8f6f1;color:#20333a;margin-left:5px}#install-app,[data-action="install-app"]{display:none!important}</style>`;
+const toolbar=`<section id="preview-tools" aria-label="Controles de prueba"><div><strong>ConectaCuba v19 · Prueba</strong><small>Datos ficticios. Sin envíos reales. No introduzcas datos personales.</small></div><div><label for="preview-role">Ver como </label><select id="preview-role"><option value="person">Persona</option><option value="business">Negocio</option><option value="admin">Administración (prueba)</option></select><button type="button" id="preview-reset">Reiniciar prueba</button></div></section><style>#preview-tools{background:#103b53;color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font:12px/1.4 system-ui}#preview-tools small{display:block;color:#d3e4df;font-size:11px}#preview-tools select,#preview-tools button{font:12px system-ui;padding:7px;border:1px solid #819c9c;border-radius:5px;background:#f8f6f1;color:#20333a;margin-left:5px}#install-app,[data-action="install-app"]{display:none!important}</style>`;
 html=html.replace('<body class="app-body">','<body class="app-body">'+toolbar);
 const prelude=`(() => {
  const key='conectacuba-v17-preview-shared-v1';
@@ -33,7 +33,9 @@ const prelude=`(() => {
    if(target.id==='account-signout'||target.dataset.action==='signout'||target.dataset.action==='relogin')return stopPreviewAction(event,'Esta prueba mantiene un perfil ficticio abierto. Usa el selector Persona / Negocio de la barra superior para cambiar de perfil o Reiniciar prueba para empezar de nuevo.');
    if(['forgot','join','person','business','login'].includes(target.dataset.open)||target.dataset.action==='resend')return stopPreviewAction(event,'El registro, el acceso y las contraseñas reales no están disponibles en esta prueba. No se envían correos. Usa Persona / Negocio en la barra superior.');
    if(target.id==='business-image'||target.closest('form[data-form="logo"]'))return stopPreviewAction(event,'La subida de imágenes está desactivada en esta prueba. No se enviará ningún archivo.');
-   const link=event.target.closest('a');if(link&&link.getAttribute('href')&&!link.getAttribute('href').startsWith('#'))return stopPreviewAction(event,'Este enlace externo está desactivado en la prueba.');
+   const link=event.target.closest('a');
+   if(link&&(link.getAttribute('href')||'').startsWith('https://wa.me/')){event.preventDefault();event.stopImmediatePropagation();if(window.CC_PREVIEW_OPEN_WA)window.CC_PREVIEW_OPEN_WA(link.href);else alert('Mensaje preparado de prueba. No se abrirá WhatsApp.');return;}
+   if(link&&link.getAttribute('href')&&!link.getAttribute('href').startsWith('#'))return stopPreviewAction(event,'Este enlace externo está desactivado en la prueba.');
  },true);
  document.addEventListener('submit',event=>{
    const form=event.target;
