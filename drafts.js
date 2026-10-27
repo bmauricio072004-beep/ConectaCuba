@@ -1,6 +1,6 @@
 (() => {
  'use strict';
- const allowed=new Set(['profile','resume','job','business-edit','apply','workflow-business-contact','workflow-person-contact','workflow-next-step','workflow-report']);
+ const allowed=new Set(['profile','resume','job','business-edit','apply','workflow-business-contact','workflow-person-contact','workflow-next-step','workflow-report','workflow-message','preview-register']);
  const mounted=new WeakSet(),fields=form=>Array.from(form.elements||[]).filter(el=>el.name&&!el.disabled&&!['password','file','checkbox','radio','submit','button','hidden'].includes(el.type)&&!/(password|token|secret|consent)/i.test(el.name));
  function owner(){try{return JSON.parse(localStorage.getItem('cc_auth_session_v1')||'null')?.user?.id||'';}catch{return '';}}
  function key(form){const id=owner();return id&&allowed.has(form.dataset.form)?'cc_workflow_draft_'+id+'_'+[form.dataset.form,form.dataset.id||'new',form.dataset.section||'',form.dataset.jobId||''].join('_'):'';}

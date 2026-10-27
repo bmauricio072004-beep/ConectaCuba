@@ -43,7 +43,7 @@ Mapas, directorio de servicios, estadísticas salariales con suficientes datos, 
 
 ## Validación de esta entrega
 
-Pasaron las diez comprobaciones de código, publicación, paquete hospedado, flujos de cuenta, contactos/selección, borradores, contratación, sesiones y ofertas. La verificación local usa un sistema de archivos en memoria por la restricción de solo lectura del entorno; no se modificó la copia local de producción. La nueva fuente se guarda en GitHub mediante sus herramientas conectadas. La inspección visual en navegador real sigue pendiente. Vercel puede exigir autorización adicional del espacio para leer logs: no confundir el estado READY con una inspección visual o una validación del backend real.
+Pasaron las once comprobaciones de código, publicación, paquete hospedado, flujos de cuenta, contactos/selección, borradores, contratación, sesiones y ofertas. La verificación local usa un sistema de archivos en memoria por la restricción de solo lectura del entorno; no se modificó la copia local de producción. La nueva fuente se guarda en GitHub mediante sus herramientas conectadas. La inspección visual en navegador real sigue pendiente. Vercel puede exigir autorización adicional del espacio para leer logs: no confundir el estado READY con una inspección visual o una validación del backend real.
 
 ## Mejora adicional v19
 
@@ -57,3 +57,9 @@ Pasaron las diez comprobaciones de código, publicación, paquete hospedado, flu
 Las instrucciones de revisión se encuentran en docs/PRUEBA_V19.md.
 
 Se agregaron indicadores de novedades a las pestañas actuales. Se consultan datos resumidos, con caché de treinta segundos por cuenta; se actualizan al abrir la pantalla y al leer una postulación. No son notificaciones push ni seguimiento en tiempo real. Las postulaciones que la persona acaba de enviar se consideran vistas para no avisarle de su propia acción.
+
+## Revisión de flujos v20
+
+Se unifica el contacto guardado en el registro, se acorta el registro personal, se evita pedir de nuevo el WhatsApp en cada postulación y se abre directamente la postulación existente. Se añade conversación privada por postulación, respuestas de ambas partes, avisos de mensajes y estados de solo lectura al finalizar. El negocio vuelve a revisión cuando corresponde; la prueba permite recorrer ese paso desde Administración. Se suaviza el diseño conservando identidad y colores.
+
+La conversación es funcional en el simulador de revisión. Falta implementar/verificar las operaciones equivalentes del backend real, idempotencia de mensajes y paginación. No hay notificaciones push ni sincronización automática entre dispositivos. Guía: docs/PRUEBA_V20.md.

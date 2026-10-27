@@ -31,3 +31,15 @@ RPC cc_reports_moderation: administración real según tabla/función de autoriz
 La configuración del cliente habilita employmentWorkflow solo después de que el servidor soporte todas las operaciones y supere las pruebas de permisos. La clave de capacidad no es una autorización: todas las operaciones deben volver a comprobar el actor en servidor.
 
 Probar como invitado, persona propietaria, otra persona, negocio propietario, otro negocio y administrador; contacto público/restringido; estados previos/posteriores a invitación, rechazo y retirada; solicitud con application_id ajeno; XSS; teléfonos malformados; fechas invierno/verano; cambios simultáneos; reportes duplicados y límites. Revisar RLS, GRANT y funciones invoker/definer con el skill Supabase antes de aplicar cambios. Conservar tabla pedidos ajena. No ejecutar la suite SQL histórica sin conciliar las expectativas de automoderación.
+
+## Registro y conversaciones (v20)
+
+Pedir el WhatsApp laboral una vez al registrar persona o negocio. El contacto de recuperación privado no debe reutilizarse como contacto laboral. La metadata de Auth puede transportar ese dato de perfil, pero nunca decide permisos ni roles administrativos. Al primer acceso de una persona se inicializa cv_contact solo si falta; no sobrescribir cambios posteriores. Para negocios, cc_business_contact debe devolver los datos existentes del registro y las preferencias guardadas, con visibilidad privada por defecto; persistir contact_hours/contact_visibility en la configuración laboral. No pedir el número nuevamente para invitar o enviar mensajes.
+
+RPC cc_application_messages(application_id, job_id): comprobar identidad real y pertenencia de ambos identificadores. Solo participantes de la postulación. Devolver como máximo los últimos 50 mensajes en orden cronológico; añadir paginación antes del uso real. No incluir CV ni números en los mensajes automáticamente. Al retirar, bloquear lectura al negocio; la persona conserva su historial privado en modo de solo lectura. Después de no selección, conservar lectura a participantes pero bloquear nuevos envíos.
+
+RPC cc_send_application_message: solo participantes de un proceso abierto, texto de 1 a 2000 caracteres, escape en presentación, límite de frecuencia y clave de idempotencia para evitar duplicados por reintento. Insertar mensaje y actualizar updated_at/last_message_at/last_message_sender_role de la postulación en una transacción. Derivar sender_id y sender_role del actor real. Nunca aceptar identidad o destinatario suministrados por el cliente como autoridad. Las invitaciones/selecciones deben crear su mensaje con fecha e indicaciones en la misma transacción del cambio de estado.
+
+La revisión implementa estas operaciones en su simulador. No se han creado ni aplicado tablas o funciones nuevas en el backend real.
+
+La v20 envía client_key estable al reintentar el mismo mensaje. El simulador comprueba (postulación, actor, client_key) y devuelve el envío existente sin insertar otro ni crear otra novedad. El backend real debe imponer también una restricción única y resolver la carrera en una transacción; una comprobación previa en JavaScript no basta.
