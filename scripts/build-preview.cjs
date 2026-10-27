@@ -12,18 +12,18 @@ html=html.replace(/<link\b[^>]*>/g,tag=>{
  return tag.includes('rel="icon"')?'<link rel="icon" href="'+svg+'">':'';
 });
 html=html.replaceAll('src="/icon.svg"','src="'+svg+'"');
-html=html.replace('<title>ConectaCuba · Empleos y mi cuenta</title>','<title>ConectaCuba v17 · Prueba navegable</title>');
+html=html.replace('<title>ConectaCuba · Empleos y mi cuenta</title>','<title>ConectaCuba v18 · Prueba navegable</title>');
 html=html.replace('<meta name="theme-color"',`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><meta name="theme-color"`);
-const toolbar=`<section id="preview-tools" aria-label="Controles de prueba"><div><strong>ConectaCuba v17 · Prueba</strong><small>Datos ficticios. Sin envíos reales. No introduzcas datos personales.</small></div><div><label for="preview-role">Ver como </label><select id="preview-role"><option value="person">Persona</option><option value="business">Negocio</option></select><button type="button" id="preview-reset">Reiniciar prueba</button></div></section><style>#preview-tools{background:#103b53;color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font:12px/1.4 system-ui}#preview-tools small{display:block;color:#d3e4df;font-size:11px}#preview-tools select,#preview-tools button{font:12px system-ui;padding:7px;border:1px solid #819c9c;border-radius:5px;background:#f8f6f1;color:#20333a;margin-left:5px}#install-app,[data-action="install-app"]{display:none!important}</style>`;
+const toolbar=`<section id="preview-tools" aria-label="Controles de prueba"><div><strong>ConectaCuba v18 · Prueba</strong><small>Datos ficticios. Sin envíos reales. No introduzcas datos personales.</small></div><div><label for="preview-role">Ver como </label><select id="preview-role"><option value="person">Persona</option><option value="business">Negocio</option><option value="admin">Administración (prueba)</option></select><button type="button" id="preview-reset">Reiniciar prueba</button></div></section><style>#preview-tools{background:#103b53;color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font:12px/1.4 system-ui}#preview-tools small{display:block;color:#d3e4df;font-size:11px}#preview-tools select,#preview-tools button{font:12px system-ui;padding:7px;border:1px solid #819c9c;border-radius:5px;background:#f8f6f1;color:#20333a;margin-left:5px}#install-app,[data-action="install-app"]{display:none!important}</style>`;
 html=html.replace('<body class="app-body">','<body class="app-body">'+toolbar);
 const prelude=`(() => {
  const key='conectacuba-v17-preview-shared-v1';
  let memory=null,storage=null;
  try {storage=window.sessionStorage;storage.setItem(key+'-probe','1');storage.removeItem(key+'-probe');}catch{}
  window.CC_PREVIEW_STORE={read(){try{return JSON.parse(storage?storage.getItem(key):memory);}catch{return null;}},write(value){const text=JSON.stringify(value);if(storage){try{storage.setItem(key,text);return;}catch{storage=null;}}memory=text;}};
- const params=new URLSearchParams(location.search);const role=params.get('role')==='business'?'business':'person';
+ const params=new URLSearchParams(location.search);const role=params.has('admin')?'admin':params.get('role')==='business'?'business':'person';
  document.getElementById('preview-role').value=role;
- function openRole(){const url=new URL(location.href);url.search='?role='+document.getElementById('preview-role').value+'&catalog=1';url.hash=document.getElementById('preview-role').value==='business'?'cuenta/jobs':'empleos';location.href=url.href;}
+ function openRole(){const url=new URL(location.href);const selected=document.getElementById('preview-role').value;url.search='?role='+(selected==='admin'?'person':selected)+'&catalog=1'+(selected==='admin'?'&admin=1':'');url.hash=selected==='business'?'cuenta/jobs':selected==='admin'?'cuenta/menu':'empleos';location.href=url.href;}
  document.getElementById('preview-role').onchange=openRole;
  document.getElementById('preview-reset').onclick=()=>{if(confirm('¿Reiniciar las ofertas, el CV y las postulaciones de esta prueba?')){if(storage)storage.removeItem(key);memory=null;openRole();}};
  window.fetch=async()=>{throw new Error('Esta prueba no realiza conexiones de red.');};
@@ -46,7 +46,7 @@ fixture=fixture.replace("const params=new URLSearchParams(location.search),perso
 let auth=read('auth.js').replace(/    if\('serviceWorker' in navigator\)navigator\.serviceWorker\.register\('\/sw\.js'\)\.then\(reg=>reg\.update\(\)\)\.catch\(\(\)=>\{\}\);/, '    // Service worker intentionally disabled in the standalone preview.');
 auth=auth.replaceAll('src="/icon.svg"','src="'+svg+'"');
 // Inline modules after the original body so the DOM exists; preserve module order.
-const scripts=[prelude,fixture,read('hiring.js'),read('opportunities.js'),auth].map(s=>'<script>'+s.replace(/<\/script/gi,'<\\/script')+'</script>').join('\n');
+const scripts=[prelude,fixture,read('workflow.js'),read('hiring.js'),read('opportunities.js'),auth,read('drafts.js')].map(s=>'<script>'+s.replace(/<\/script/gi,'<\\/script')+'</script>').join('\n');
 html=html.replace('</body>',scripts+'</body>');
 const out=path.join(root,'preview');fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'ConectaCuba-v17-prueba.html'),html);
 console.log('Vista autónoma: preview/ConectaCuba-v17-prueba.html');

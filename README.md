@@ -43,3 +43,7 @@ npm test
 Ejecuta las comprobaciones del simulador, rutas, contratación, ciclo de sesión y ofertas sin acceder a servicios reales. No equivale a inspección visual ni a una prueba de entrega de correo. `npm run verify:release` requiere preparar `dist/` previamente y comprueba paridad de activos y exclusión de fixtures.
 
 Consulta `DEVELOPMENT.md`, `PENDIENTES.txt` y `MARCA_Y_DISENO.txt` para los flujos y límites de la base v17. Las menciones a Hostinger en esos documentos describen opciones de la exportación histórica; la revisión actual está preparada para Vercel. Cualquier sustitución del backend sigue pendiente de diseño y validación.
+
+## Revisión v18
+
+Consulta PLAN_DE_TRABAJO.md para lo entregado y lo pendiente, y docs/CONTACTOS_Y_SELECCION.md para los contratos del backend real. La revisión añade contacto laboral, invitaciones, próximos pasos, novedades, borradores y reportes con datos ficticios. No cambia las cuentas ni los datos reales de Supabase.

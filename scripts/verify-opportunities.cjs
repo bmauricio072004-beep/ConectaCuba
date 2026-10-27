@@ -53,7 +53,7 @@ function setup(search=''){
   const freshReviews=await updated.api.renderOffer(JOB_A,'reviews');
   assert(!freshReviews.includes('Sin valoraciones todavía'),'A newly approved review must update the rating even when the offer is cached');
 
-  html=await t.api.renderApplications();assert(html.includes('Aceptada'));assert(!html.includes('PRIVATE_CV'));assert(!html.includes('PRIVATE_CONTACT'));
+  html=await t.api.renderApplications();assert(html.includes('Seleccionada'));assert(!html.includes('PRIVATE_CV'));assert(!html.includes('PRIVATE_CONTACT'));
   const list=t.requests.find(r=>r.path.includes('job_applications?')&&!r.path.includes('id=eq.'+APP));assert(list.path.includes('applicant_id=eq.'+PERSON));assert(!list.path.includes('cv_snapshot'));assert(!list.path.includes('contact'));
   html=await t.api.renderApplication(APP);assert(html.includes('El negocio aceptó tu postulación'));assert(html.includes('PRIVATE_CV'));assert(html.includes('PRIVATE_CONTACT'));assert(html.includes('Información de la oferta'));
   t.applications[0].status='not_selected';html=await t.api.renderApplication(APP);assert(html.includes('No seleccionada'));assert(html.includes('no continuará'));

@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const assets=['index.html','app/index.html','auth.js','auth-config.js','hiring.js','hiring.css','opportunities.js','ios.css','app.css','styles.css','landing.css','landing.js','sw.js','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png'];
+const assets=['index.html','app/index.html','auth.js','auth-config.js','hiring.js','hiring.css','workflow.js','drafts.js','workflow.css','opportunities.js','ios.css','app.css','styles.css','landing.css','landing.js','sw.js','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png'];
 function inspect(dir){
   for(const item of fs.readdirSync(dir,{withFileTypes:true})){
     assert(!item.name.startsWith('_qa'),'Local test fixtures must not be published: '+path.join(dir,item.name));

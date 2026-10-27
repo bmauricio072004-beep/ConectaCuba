@@ -37,7 +37,7 @@ function setup(extra=[]){
   await assert.rejects(()=>t.api.renderPerson(JOB_A,APP_B),/no tiene una postulación/);
   Object.assign(t.route,{page:'candidate',jobId:JOB_A,applicationId:APP_A});
   await t.api.handleClick(t.click(t.button({hiringStatus:'reviewing',jobId:JOB_A,personId:APP_A})));assert.equal(t.applications[0].status,'reviewing');assert.equal(t.navigation.at(-1).opts.history,'replace');
-  await t.api.handleClick(t.click(t.button({hiringStatus:'accepted',jobId:JOB_A,personId:APP_A})));assert.equal(t.applications[0].status,'accepted');assert((await t.api.renderJob(JOB_A)).includes('Aceptada (1)'));
+  await t.api.handleClick(t.click(t.button({hiringStatus:'accepted',jobId:JOB_A,personId:APP_A})));assert.equal(t.applications[0].status,'accepted');assert((await t.api.renderJob(JOB_A)).includes('Seleccionada (1)'));
   t.applications[0].status='withdrawn';const withdrawn=await t.api.renderPerson(JOB_A,APP_A);assert(!withdrawn.includes('ana@example.invalid'));assert(!withdrawn.includes('Experiencia privada'));assert(withdrawn.includes('retiró su postulación'));
   t.business.review_status='pending';const pending=await t.api.renderJobs();assert(!pending.includes('data-action="new-job"'));assert(pending.includes('pendiente de revisión'));
 

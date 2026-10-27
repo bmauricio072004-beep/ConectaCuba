@@ -31,12 +31,21 @@
   let resume={user_id:profile.id,intro:'Técnica en electricidad con experiencia en mantenimiento.',experience:'Diagnóstico de equipos y reparaciones.',education:'Técnico medio en electricidad.',skills:'Instalación y mantenimiento.',languages:'Español',cv_contact:'ana@example.invalid'};
   // Optional storage bridge supplied only by the standalone preview builder.
   const store=window.CC_PREVIEW_STORE;
+  window.CC_CAPABILITIES={employmentWorkflow:!!store};
+  let reports=[];
+  let contactSettings={whatsapp:'+53 00000000',phone:'',contact_person:'Responsable de prueba',contact_hours:'Lunes a viernes, de 9:00 a 17:00',visibility:'invited'};
+  const normalizedPhone=value=>{let s=String(value||'').trim();if(!s||!/^(\+|00)?[\d\s().-]+$/.test(s))return '';let d=s.replace(/\D/g,'');if(s.startsWith('00'))d=d.slice(2);if(d.length===8&&!s.startsWith('+')&&!s.startsWith('00'))d='53'+d;return /^[1-9]\d{7,14}$/.test(d)?'+'+d:'';};
+  const touch=a=>new Date(Math.max(Date.now(),new Date(a.updated_at||a.created_at).getTime()+1)).toISOString();
+  function recordStage(a,status,extra={}){const now=touch(a);const previous=a.status_history||[{status:'submitted',at:a.created_at}];a.status_history=[...previous,{status,at:now}].slice(-30);Object.assign(a,extra,{status,updated_at:now});}
+
   if(store){
     const saved=store.read();
     if(saved){
       if(Array.isArray(saved.jobs))jobs.splice(0,jobs.length,...saved.jobs);
       if(Array.isArray(saved.applications))applications.splice(0,applications.length,...saved.applications);
       if(saved.business)Object.assign(business,saved.business);
+      if(saved.contactSettings)Object.assign(contactSettings,saved.contactSettings);
+      if(Array.isArray(saved.reports))reports=saved.reports;
       if(Array.isArray(saved.reviews))reviewSubmissions.splice(0,reviewSubmissions.length,...saved.reviews);
       if(saved.profiles?.[profile.id])Object.assign(profile,saved.profiles[profile.id]);
       if(saved.resumes?.[profile.id])resume=saved.resumes[profile.id];
@@ -46,7 +55,7 @@
   function savePreview(){
     if(!store)return;
     const before=store.read()||{};
-    store.write({jobs,applications,business,reviews:reviewSubmissions,savedJobs:before.savedJobs||{},profiles:{...before.profiles,[profile.id]:profile},resumes:{...before.resumes,[profile.id]:resume}});
+    store.write({jobs,applications,business,contactSettings,reports,reviews:reviewSubmissions,savedJobs:before.savedJobs||{},profiles:{...before.profiles,[profile.id]:profile},resumes:{...before.resumes,[profile.id]:resume}});
   }
   const values=new Map(params.has('guest')?[]:[['cc_auth_session_v1',JSON.stringify({access_token:'local-fixture-not-a-real-token',expires_at:Date.now()/1000+3600,user:{id:profile.id,email:person?'ana@example.invalid':'negocio@example.invalid',email_confirmed_at:stamp}})]]);
   // Only bookmark keys cross preview reloads; never persist the synthetic session.
@@ -68,9 +77,48 @@
   window.fetch=async(input,options={})=>{
     const target=String(input);if(!target.startsWith(api))return store?json({message:'La vista previa no permite conexiones externas.'},403):realFetch(input,options);
     const u=new URL(target),path=u.pathname.slice('/__qa_api'.length),p=u.searchParams,method=options.method||'GET',body=typeof options.body==='string'?JSON.parse(options.body):{};
+    if(path==='/rest/v1/rpc/cc_report_job'){
+      if(params.has('guest'))return json({message:'Inicia sesión para reportar'},403);
+      const job=jobs.find(j=>j.id===body.job_id);if(!job)return json({message:'Oferta no disponible'},404);
+      const reason=String(body.reason||''),detail=String(body.detail||'').trim();
+      if(!['Posible fraude','Datos engañosos','Contenido inapropiado','Otro'].includes(reason)||detail.length<15||detail.length>2000)return json({message:'Revisa el motivo y la descripción'},400);
+      if(reports.some(r=>r.job_id===job.id&&r.author_id===profile.id&&r.status==='pending'))return json({message:'Ya tienes un reporte pendiente para esta oferta'},409);
+      if(reports.filter(r=>r.author_id===profile.id&&new Date(r.created_at).toDateString()===new Date().toDateString()).length>=5)return json({message:'Límite de cinco reportes de prueba al día'},429);
+      const r={id:fixtureUUID(),job_id:job.id,job_title:job.title,author_id:profile.id,reason,detail,status:'pending',created_at:new Date().toISOString()};reports.push(r);return json({id:r.id,status:r.status},201);
+    }
+    if(path==='/rest/v1/rpc/cc_reports_moderation'){
+      if(!params.has('admin'))return json({message:'Solo administración puede revisar reportes'},403);
+      if(body.report_id){const r=reports.find(r=>r.id===body.report_id);if(!r)return json({message:'Reporte no disponible'},404);if(body.status!=='reviewed')return json({message:'Estado no permitido'},400);r.status='reviewed';}
+      return json(reports.slice(-100).reverse());
+    }
+    if(path==='/rest/v1/rpc/cc_business_contact'){
+      if(body.business_id!==OWNER)return json({message:'Negocio no disponible'},404);
+      const owned=!person&&!params.has('guest');
+      const a=applications.find(a=>a.id===body.application_id&&a.applicant_id===profile.id&&a.business_user_id===OWNER);
+      const invited=person&&!params.has('guest')&&a&&['contacted','accepted'].includes(a.status);
+      const shared=owned||(business.review_status==='approved'&&(contactSettings.visibility==='public'||invited));
+      return json(shared?{...contactSettings,shared:true,business_name:business.business_name}:{shared:false,business_name:business.business_name,visibility:contactSettings.visibility});
+    }
+    if(path==='/rest/v1/rpc/cc_save_business_contact'){
+      if(person||params.has('guest'))return json({message:'Solo el negocio puede modificar su contacto'},403);
+      const phone=normalizedPhone(body.whatsapp),alternative=body.phone?normalizedPhone(body.phone):'';
+      if(!phone||(body.phone&&!alternative)||!['public','invited'].includes(body.visibility)||String(body.contact_person||'').trim().length<2)return json({message:'Revisa los datos del contacto'},400);
+      contactSettings={whatsapp:phone,phone:alternative,contact_person:String(body.contact_person).trim().slice(0,100),contact_hours:String(body.contact_hours||'').trim().slice(0,150),visibility:body.visibility};
+      return json({...contactSettings,shared:true});
+    }
+    if(path==='/rest/v1/rpc/cc_application_next_step'){
+      if(person||params.has('guest'))return json({message:'Solo el negocio puede invitar'},403);
+      const a=applications.find(a=>a.id===body.application_id&&a.job_id===body.job_id&&a.business_user_id===profile.id);
+      if(!a||a.status==='withdrawn')return json({message:'Postulación no disponible'},404);
+      const message=String(body.employer_message||'').trim();
+      if(!['contacted','accepted'].includes(body.status)||message.length<10||message.length>2000||!normalizedPhone(contactSettings.whatsapp))return json({message:'Revisa el mensaje, el estado y el contacto del negocio'},400);
+      if(body.meeting_at&&(!Number.isFinite(new Date(body.meeting_at).getTime())||new Date(body.meeting_at).getTime()<=Date.now()))return json({message:'La fecha debe ser futura'},400);
+      recordStage(a,body.status,{employer_message:message,meeting_at:body.meeting_at||null,meeting_place:String(body.meeting_place||'').trim().slice(0,300)});
+      return json({id:a.id,status:a.status,updated_at:a.updated_at});
+    }
     if(path==='/rest/v1/rpc/cc_is_admin')return json(params.has('admin'));
     if(path==='/rest/v1/rpc/cc_job_application_counts')return json(counters());
-    if(path==='/rest/v1/business_directory')return json(business.review_status==='approved'?[publicBusiness]:[]);
+    if(path==='/rest/v1/business_directory')return json(business.review_status==='approved'?[{...publicBusiness,whatsapp:contactSettings.visibility==='public'?contactSettings.whatsapp:'',other_contact:''}]:[]);
     if(path==='/rest/v1/business_rating_stats'){
       const approved=reviewSubmissions.filter(r=>r.review_status==='approved');
       return json(approved.length?[{business_user_id:OWNER,average_rating:Math.round(approved.reduce((n,r)=>n+r.rating,0)/approved.length*10)/10,review_count:approved.length}]:[]);
@@ -102,16 +150,18 @@
         const job=jobs.find(j=>j.id===body.job_id&&j.status==='published');
         if(!job||!body.consent)return json({message:'Oferta no disponible o falta el consentimiento.'},400);
         if(applications.some(a=>a.job_id===job.id&&a.applicant_id===profile.id))return json({message:'Ya existe una postulación de esta persona.'},409);
-        const created={id:fixtureUUID(),job_id:job.id,applicant_id:profile.id,business_user_id:job.business_user_id,job_title:job.title,business_name:job.business_name,applicant_name:profile.display_name,applicant_location:[profile.municipality,profile.province].join(', '),desired_job:profile.desired_job,status:'submitted',contact:body.contact,message:body.message||'',cv_snapshot:body.cv_snapshot,job_snapshot:{...job},consent:true,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+        const created={id:fixtureUUID(),job_id:job.id,applicant_id:profile.id,business_user_id:job.business_user_id,job_title:job.title,business_name:job.business_name,applicant_name:profile.display_name,applicant_location:[profile.municipality,profile.province].join(', '),desired_job:profile.desired_job,status:'submitted',contact:body.contact,message:body.message||'',cv_snapshot:body.cv_snapshot,job_snapshot:{...job},consent:true,status_history:[{status:'submitted',at:new Date().toISOString()}],created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
         applications.push(created);return json([created],201);
       }
-      const selected=filter(applications,p);
+      const selected=filter(applications,p).filter(a=>!params.has('guest')&&(person?a.applicant_id===profile.id:a.business_user_id===profile.id));
       if(method==='PATCH'){
         if(selected.some(a=>a.status==='withdrawn'))return json({message:'No puedes cambiar una postulación retirada'},400);
-        selected.forEach(a=>Object.assign(a,body,{updated_at:new Date().toISOString()}));return json(selected);
+        if(person&&(body.status!=='withdrawn'||Object.keys(body).some(k=>k!=='status')))return json({message:'Solo puedes retirar tu postulación'},403);
+        if(!person&&(!['reviewing','contacted','accepted','not_selected'].includes(body.status)||Object.keys(body).some(k=>k!=='status')))return json({message:'Cambio de estado no permitido'},400);
+        selected.forEach(a=>recordStage(a,body.status));return json(selected);
       }
       const select=p.get('select')||'*',offset=Number(p.get('offset')||0),limit=Number(p.get('limit')||100);
-      return json(selected.slice(offset,offset+limit).map(row=>select==='*'?row:Object.fromEntries(select.split(',').map(k=>[k,row[k]]))));
+      return json(selected.slice(offset,offset+limit).map(row=>{const visible=!person&&row.status==='withdrawn'?{...row,contact:null,message:null,cv_snapshot:null}:row;return select==='*'?visible:Object.fromEntries(select.split(',').map(k=>[k,visible[k]]));}));
     }
     if(path==='/rest/v1/resumes'){if(['POST','PATCH'].includes(method))resume={...resume,...body};return json(person?[resume]:[]);}
     if(path==='/auth/v1/logout')return new Response(null,{status:204});

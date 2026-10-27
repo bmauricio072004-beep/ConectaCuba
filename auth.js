@@ -9,6 +9,7 @@
   const activities=['Electricidad y electrónica','Construcción','Servicios técnicos','Comercio','Alimentos y gastronomía','Transporte','Salud','Educación','Belleza','Turismo','Tecnología','Servicios profesionales','Agricultura','Manufactura','Limpieza y mantenimiento','Otra'];
   const sessionKey='cc_auth_session_v1';
   const state={profile:null,business:null,resume:null,isAdmin:false,jobs:[],applications:[],page:'overview',render:0,pendingJob:null,afterLoginPage:null,selectedJob:null,ownerJobId:null,ownerApplicationId:null,lastURL:location.pathname+location.search+location.hash,lastHistory:null};
+  let workflow=null;
   let refreshPromise=null,previousFocus=null,hiring=null,opportunities=null,sessionEpoch=0;
   const readSession=()=>{try{return JSON.parse(localStorage.getItem(sessionKey)||'null');}catch{return null;}};
   function staleSession(){const e=new Error('La sesión cambió.');e.code='STALE_REQUEST';return e;}
@@ -119,7 +120,7 @@
       signupFields()+'<div class="form-section span2">'+(person?'Tu perfil':'Tu negocio')+'</div>'+
       (person?field('Nombre y apellidos *','display_name','','required minlength="2" maxlength="100" autocomplete="name"')+locationFields()+
         field('Dirección o zona (opcional)','address','','maxlength="300" autocomplete="street-address"','Queda privada.',true)+
-        field('¿Qué trabajo buscas?','desired_job','','maxlength="120"','Puedes ampliarlo luego en tu perfil.',true)+area('Habilidades o experiencia principal','profile_summary')+otherSelect('Canal de contacto preferido','public_contact','public_contact_other',['Correo','WhatsApp','Teléfono','Telegram','Otro'],'Correo','','Otro'):
+        field('¿Qué trabajo buscas?','desired_job','','maxlength="120"','Puedes ampliarlo luego en tu perfil.',true)+area('Habilidades o experiencia principal','profile_summary')+otherSelect('Canal de contacto preferido','public_contact','public_contact_other',['WhatsApp','Teléfono','Correo','Telegram','Otro'],'WhatsApp','','Otro'):
         businessFields())+formEnd(person?'Crear mi perfil':'Enviar negocio para revisión');
   }
   function loginForm(){return '<p class="account-note">Entra con el correo de tu cuenta.</p><form class="form-grid" data-form="login">'+
@@ -151,7 +152,7 @@
     $('install-app').hidden=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
   }
   function markNavigation(page=null){
-    const target=['job','candidate','editor'].includes(page)?'jobs':page==='application'?'applications':['profile','resume','resume-edit','resume-preview','security','my-reviews','admin','review-admin'].includes(page)?'menu':page==='saved'?null:page;
+    const target=['job','candidate','editor'].includes(page)?'jobs':page==='application'?'applications':['profile','resume','resume-edit','resume-preview','security','my-reviews','admin','review-admin','contacts','notifications','help','reports'].includes(page)?'menu':page==='saved'?null:page;
     document.querySelectorAll('.workspace-nav button,.mobile-app-nav button').forEach(b=>{
       const active=target?b.dataset.accountPage===target:!!b.dataset.home;
       b.classList.toggle('active',active);active?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current');
@@ -226,7 +227,7 @@
     if(kind==='forgot')return modalContent('Recuperar contraseña','<p>Recibirás un enlace para elegir una contraseña nueva.</p><form class="form-grid" data-form="forgot">'+field('Correo electrónico','email',readSession()?.user?.email||'','type="email" required autocomplete="email"','',true)+formEnd('Enviar enlace')+'<div class="auth-switch"><button type="button" class="text-btn" data-open="login">Volver a iniciar sesión</button></div>');
     modalContent('Iniciar sesión',loginForm());
   }
-  function allowLeave(){const f=document.querySelector('#account-content form[data-dirty="true"]');return !f||confirm('Tienes cambios sin guardar. ¿Quieres salir de este formulario?');}
+  function allowLeave(){const f=document.querySelector('form[data-dirty="true"]');return !f||confirm('Tienes cambios sin guardar. ¿Quieres salir de este formulario?');}
   function showHome(anchor='#vacantes',leave=true,routeOptions={}){
     if(leave&&!allowLeave())return;opportunities?.cancelOffer();$('account-content').removeAttribute('aria-busy');state.render++;state.page='search';closeModal();
     setAppView('search');
@@ -254,11 +255,11 @@
       const business=p.account_type==='business';
       if(page==='overview')page=business?'jobs':'applications';
       if(page==='candidates')page='jobs';
-      const permitted={menu:true,profile:true,security:true,resume:!business,'resume-edit':!business,'resume-preview':!business,applications:!business,application:!business,'my-reviews':!business,saved:!business,business,jobs:business,job:business,candidate:business,admin:state.isAdmin,'review-admin':state.isAdmin};
+      const permitted={reports:state.isAdmin&&!!workflow,contacts:!!workflow,notifications:!!workflow,help:!!workflow,menu:true,profile:true,security:true,resume:!business,'resume-edit':!business,'resume-preview':!business,applications:!business,application:!business,'my-reviews':!business,saved:!business,business,jobs:business,job:business,candidate:business,admin:state.isAdmin,'review-admin':state.isAdmin};
       if(!permitted[page])page=business?'jobs':'menu';state.page=page;setAppView(page);
       if(routeOptions.jobId!==undefined)state.ownerJobId=routeOptions.jobId;
       if(routeOptions.applicationId!==undefined)state.ownerApplicationId=routeOptions.applicationId;
-      const titles={menu:'Mi cuenta',profile:'Datos personales',security:'Acceso y seguridad',resume:'Mi currículum','resume-edit':'Editar currículum','resume-preview':'Vista previa del currículum',applications:'Mis postulaciones',application:'Detalle de mi postulación','my-reviews':'Mis reseñas',business:'Mi negocio',jobs:'Vacantes',job:'Detalle de la vacante',candidate:'Postulación',admin:'Revisión de negocios','review-admin':'Revisión de reseñas'};
+      const titles={reports:'Reportes de ofertas',contacts:'Mi contacto laboral',notifications:'Novedades',help:'Ayuda y privacidad',menu:'Mi cuenta',profile:'Datos personales',security:'Acceso y seguridad',resume:'Mi currículum','resume-edit':'Editar currículum','resume-preview':'Vista previa del currículum',applications:'Mis postulaciones',application:'Detalle de mi postulación','my-reviews':'Mis reseñas',business:'Mi negocio',jobs:'Vacantes',job:'Detalle de la vacante',candidate:'Postulación',admin:'Revisión de negocios','review-admin':'Revisión de reseñas'};
       let hash='#cuenta/'+page;
       if(page==='job'||page==='candidate')hash='#cuenta/vacante/'+(state.ownerJobId||'')+(page==='candidate'?'/postulante/'+(state.ownerApplicationId||''):'');
       if(page==='application')hash='#cuenta/postulacion/'+(state.ownerApplicationId||'');
@@ -267,7 +268,7 @@
       writeRoute(hash,routeOptions.history||(leave?'push':'replace'),{page,jobId:state.ownerJobId,applicationId:state.ownerApplicationId});
       $('account-app').dataset.page=page;$('account-welcome').hidden=['job','candidate','application','resume-preview'].includes(page);$('account-welcome').textContent=titles[page];$('account-subtitle').textContent=business?(state.business?.business_name||p.display_name):p.display_name;
       document.title=titles[page]+' · ConectaCuba';markNavigation(page);
-      const html=await ({menu:renderAccountSettings,profile:()=>accountBack()+'<section class="soft-card account-form-card"><h2>Datos personales</h2>'+renderProfile()+'</section>',security:renderSecurity,resume:renderResume,'resume-edit':()=>renderCvEditor(routeOptions.section||'all'),'resume-preview':async()=>{await loadResume();return renderCvPreview();},business:renderBusiness,jobs:renderJobsPage,job:()=>hiring.renderJob(state.ownerJobId),candidate:()=>hiring.renderPerson(state.ownerJobId,state.ownerApplicationId),applications:renderApplications,application:()=>opportunities.renderApplication(state.ownerApplicationId),saved:()=>opportunities.renderSaved(),'my-reviews':()=>opportunities.renderMyReviews(),admin:renderAdmin,'review-admin':()=>opportunities.renderReviewAdmin()}[page])();
+      const html=await ({reports:()=>workflow.renderReports(),contacts:()=>workflow.renderContacts(),notifications:()=>workflow.renderNotifications(),help:()=>workflow.renderHelp(),menu:renderAccountSettings,profile:()=>accountBack()+'<section class="soft-card account-form-card"><h2>Datos personales</h2>'+renderProfile()+'</section>',security:renderSecurity,resume:renderResume,'resume-edit':()=>renderCvEditor(routeOptions.section||'all'),'resume-preview':async()=>{await loadResume();return renderCvPreview();},business:renderBusiness,jobs:renderJobsPage,job:()=>hiring.renderJob(state.ownerJobId),candidate:()=>hiring.renderPerson(state.ownerJobId,state.ownerApplicationId),applications:renderApplications,application:()=>opportunities.renderApplication(state.ownerApplicationId),saved:()=>opportunities.renderSaved(),'my-reviews':()=>opportunities.renderMyReviews(),admin:renderAdmin,'review-admin':()=>opportunities.renderReviewAdmin()}[page])();
       if(version!==state.render)return;$('account-content').innerHTML=html;
       window.scrollTo({top:0});
     }catch(e){
@@ -297,18 +298,18 @@
       '</div></section><section class="settings-group"><h3 class="settings-group-label">Ajustes</h3><div class="account-group">'+
       accountRow('Acceso y seguridad','Correo y contraseña','data-account-page="security"','<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>')+
       accountRow('Acerca de ConectaCuba','Información de la app y autor','data-action="about-app"','<circle cx="12" cy="12" r="9"/><path d="M12 10v7M12 6v1"/>')+
-      '</div></section>'+(state.isAdmin?'<section class="settings-group"><h3 class="settings-group-label">Gestión</h3><div class="account-group">'+accountRow('Administración','Revisar negocios y reseñas','data-account-page="admin"','<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/>')+'</div></section>':'')+'<button type="button" class="logout-button" data-action="signout">Cerrar sesión</button>';
+      '</div></section>'+(state.isAdmin?'<section class="settings-group"><h3 class="settings-group-label">Gestión</h3><div class="account-group">'+accountRow('Administración','Revisar negocios y reseñas','data-account-page="admin"','<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/>')+(workflow?.capable()?accountRow('Reportes de ofertas','Revisar problemas comunicados','data-account-page="reports"','<path d="M5 3v18M5 4h13l-3 5 3 5H5"/>'):'')+'</div></section>':'')+(workflow?.settingsLinks()||'')+'<button type="button" class="logout-button" data-action="signout">Cerrar sesión</button>';
   }
   function renderSecurity(){
     return accountBack()+'<section class="soft-card account-form-card"><h2>Acceso y seguridad</h2><span class="small-note">Correo de tu cuenta</span><p class="security-email">'+esc(readSession()?.user?.email||'')+'</p><p>Usas este correo para entrar y recuperar el acceso.</p><button type="button" class="btn btn-primary" data-open="forgot">Cambiar contraseña</button></section>';
   }
   function aboutApp(){
-    modalContent('Acerca de ConectaCuba','<div class="about-app"><img src="/icon.svg" width="72" height="72" alt=""><h3>ConectaCuba</h3><span class="app-version">Versión de prueba 0.17</span><p>Una conexión entre personas que buscan trabajo y negocios que necesitan talento en Cuba.</p><div class="about-author"><span>Creado por</span><strong>ConectaCuba</strong></div><p class="small-note">Etapa piloto · Sin costo por ahora. Los negocios se revisan antes de publicar. Tú decides cuándo compartir tu currículum y contacto al postularte.</p><a class="btn btn-outline" href="/?view=web" target="_blank" rel="noopener">Conocer el proyecto</a>'+(!(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)?'<button type="button" class="btn btn-primary" data-action="install-app">Instalar en mi teléfono</button>':'')+'</div>');
+    modalContent('Acerca de ConectaCuba','<div class="about-app"><img src="/icon.svg" width="72" height="72" alt=""><h3>ConectaCuba</h3><span class="app-version">Versión de prueba 0.18</span><p>Una conexión entre personas que buscan trabajo y negocios que necesitan talento en Cuba.</p><div class="about-author"><span>Creado por</span><strong>Mauricio Benitez Mora</strong></div><p class="small-note">Etapa piloto · Sin costo por ahora. Los negocios se revisan antes de publicar. Tú decides cuándo compartir tu currículum y contacto al postularte.</p><a class="btn btn-outline" href="/?view=web" target="_blank" rel="noopener">Conocer el proyecto</a>'+(!(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)?'<button type="button" class="btn btn-primary" data-action="install-app">Instalar en mi teléfono</button>':'')+'</div>');
   }
 
   function renderProfile(){
     const p=state.profile;
-    return '<form class="form-grid account-form" data-form="profile">'+field('Nombre y apellidos *','display_name',p.display_name,'required minlength="2" maxlength="100" autocomplete="name"','',true)+locationFields(p)+field('Dirección o zona (privada)','address',p.address,'maxlength="300"','Nunca se comparte en postulaciones.',true)+field('Contacto alternativo (privado)','contact_recovery',p.contact_recovery,'maxlength="200"','No sustituye el correo de recuperación.',true)+(p.account_type==='person'?otherSelect('Canal de contacto preferido','public_contact','public_contact_other',['Correo','WhatsApp','Teléfono','Telegram','Otro'],p.public_contact||'Correo',p.public_contact_other,'Otro'):'')+'<div class="notice span2" role="status"></div><div class="form-actions span2"><button type="submit" class="btn btn-primary">Guardar datos</button></div></form>';
+    return '<form class="form-grid account-form" data-form="profile">'+field('Nombre y apellidos *','display_name',p.display_name,'required minlength="2" maxlength="100" autocomplete="name"','',true)+locationFields(p)+field('Dirección o zona (privada)','address',p.address,'maxlength="300"','Nunca se comparte en postulaciones.',true)+field('Contacto alternativo (privado)','contact_recovery',p.contact_recovery,'maxlength="200"','No sustituye el correo de recuperación.',true)+(p.account_type==='person'?otherSelect('Canal de contacto preferido','public_contact','public_contact_other',['WhatsApp','Teléfono','Correo','Telegram','Otro'],p.public_contact||'WhatsApp',p.public_contact_other,'Otro'):'')+'<div class="notice span2" role="status"></div><div class="form-actions span2"><button type="submit" class="btn btn-primary">Guardar datos</button></div></form>';
   }
 
   async function saveProfile(form,d){
@@ -423,6 +424,7 @@
   }
   async function saveJob(form,d){
     const min=d.salary_min===''?null:Number(d.salary_min),max=d.salary_max===''?null:Number(d.salary_max);
+    if([min,max].some(value=>value!==null&&(!Number.isFinite(value)||value<0)))throw new Error('El salario debe ser un número válido y no negativo.');
     if(min!==null&&max!==null&&min>max)throw new Error('El salario máximo no puede ser menor que el mínimo.');
     const value={title:d.title.trim(),category:d.category,category_other:d.category==='Otra'?(d.category_other||'').trim():'',province:d.province,municipality:d.municipality.trim(),work_modality:d.work_modality,work_schedule:d.work_schedule==='Otro'?d.work_schedule_other.trim():d.work_schedule,description:d.description.trim(),salary_min:min,salary_max:max,salary_currency:d.salary_currency,salary_period:d.salary_period};
     let jobId=form.dataset.id;if(jobId)await patchOne('job_posts?id=eq.'+jobId,value);
@@ -488,14 +490,15 @@
     const r=await loadResume();
     if(!r){closeModal();await showAccount('resume');toast('Crea y guarda tu currículum antes de postularte.','info');return;}
     modalContent('Postularme a '+j.title,'<p>Enviarás tu currículum a <strong>'+esc(j.business_name)+'</strong>.</p><form class="form-grid" data-form="apply" data-id="'+id+'">'+
-      field('Contacto para este negocio *','contact',r.cv_contact||(p.public_contact&&p.public_contact!=='Correo'?p.contact_recovery:'')||s.user.email,'required minlength="3" maxlength="200"','Ej.: tu correo o WhatsApp con código del país.',true)+area('Mensaje de presentación (opcional)','message','',2000)+
+      field('WhatsApp para este negocio *','contact',window.CC_WORKFLOW?.phone(r.cv_contact)||'','type="tel" inputmode="tel" required minlength="8" maxlength="24"','Incluye el código del país. Para un número cubano de 8 cifras añadiremos +53.',true)+area('Mensaje de presentación (opcional)','message','',2000)+
       '<label class="check-field span2"><input type="checkbox" name="consent" required><span>Autorizo compartir mi nombre, municipio y provincia, este currículum y el contacto indicado con '+esc(j.business_name)+'. Mi dirección y contacto alternativo privados no se envían.</span></label>'+formEnd('Enviar postulación'));
   }
   async function saveApplication(form,d){
     if(d.consent!=='on')throw new Error('Confirma que deseas compartir tu currículum con este negocio.');
+    if(window.CC_WORKFLOW&&!window.CC_WORKFLOW.phone(d.contact))throw new Error('Revisa tu WhatsApp e incluye el prefijo internacional.');
     const r=state.resume||{},snapshot={};
     for(const k of ['intro','experience','education','skills','languages'])snapshot[k]=r[k]||'';
-    await db('job_applications',json('POST',{job_id:form.dataset.id,applicant_id:state.profile.id,cv_snapshot:snapshot,contact:d.contact.trim(),message:d.message.trim(),consent:true}));
+    await db('job_applications',json('POST',{job_id:form.dataset.id,applicant_id:state.profile.id,cv_snapshot:snapshot,contact:window.CC_WORKFLOW?.phone(d.contact)||d.contact.trim(),message:d.message.trim(),consent:true}));
     state.pendingJob=null;form.dataset.dirty='false';closeModal();await showAccount('applications',false);toast('Postulación enviada. Puedes seguir su estado aquí.');
   }
   function renderApplications(){return opportunities.renderApplications();}
@@ -541,6 +544,7 @@
   async function submit(form){
     const d=Object.fromEntries(new FormData(form).entries()),type=form.dataset.form;
     for(const input of form.querySelectorAll('input[required],textarea[required]')){if(input.disabled||['password','confirm_password'].includes(input.name)||['password','checkbox','file'].includes(input.type))continue;const min=Math.max(1,input.minLength||0);if(input.value.trim().length<min)throw new Error('Completa el campo «'+(input.labels?.[0]?.textContent||input.name)+'» con al menos '+min+' caracteres.');}
+    if(await workflow?.handleSubmit(form,d))return;
     if(await opportunities.handleSubmit(form,d))return;
     if(['person','business'].includes(type))return signup(form,d,type);
     if(type==='login')return login(d);
@@ -568,7 +572,7 @@
     if(form.dataset.busy==='true'||!form.reportValidity())return;
     form.dataset.busy='true';const button=form.querySelector('[type="submit"]'),label=button?.textContent;
     if(button){button.disabled=true;button.textContent='Guardando…';}
-    try{await submit(form);}catch(error){notice(form,humanError(error));}
+    try{await submit(form);if(form.dataset.dirty==='false'||!form.isConnected)window.CC_DRAFTS?.clear(form);}catch(error){notice(form,humanError(error));}
     finally{if(form.isConnected){form.dataset.busy='false';if(button){button.disabled=false;button.textContent=label;}}}
   });
   document.addEventListener('input',e=>{
@@ -592,6 +596,7 @@
       target.textContent=show?'Ocultar':'Mostrar';target.setAttribute('aria-pressed',String(show));target.setAttribute('aria-label',(show?'Ocultar':'Mostrar')+' contraseña');return;
     }
     try{
+      if(await workflow?.handleClick(e))return;
       if(await opportunities.handleClick(e))return;
       if(await hiring.handleClick(e))return;
       if(target.dataset.open){e.preventDefault();openModal(target.dataset.open);return;}
@@ -680,8 +685,13 @@
     }else updateHeader();
   });
   window.addEventListener('online',()=>loadPublicData());
-  window.addEventListener('beforeunload',e=>{if(document.querySelector('#account-content form[data-dirty="true"]')){e.preventDefault();e.returnValue='';}});
+  window.addEventListener('beforeunload',e=>{if(document.querySelector('form[data-dirty="true"]')){e.preventDefault();e.returnValue='';}});
+  workflow=window.CC_WORKFLOW?.create({
+    db,patchOne,request,esc,date,modal:modalContent,closeModal,toast,confirm:message=>confirm(message),
+    getProfile:()=>state.profile,goAccount:showAccount,goPerson:openEmployerPerson
+  })||null;
   hiring=window.CC_HIRING.create({
+    workflow,
     db,patchOne,esc,chip,date,salaryLabel,resumeSections,contactLink,toast,
     document,confirm:message=>confirm(message),getProfile:()=>state.profile,getBusiness:()=>state.business,
     getRoute:()=>({page:state.page,jobId:state.ownerJobId,applicationId:state.ownerApplicationId}),
@@ -690,6 +700,7 @@
     goJob:openEmployerJob,goPerson:openEmployerPerson,goBack:hiringBack
   });
   opportunities=window.CC_OPPORTUNITIES.create({
+    workflow,
     request,db,json,patchOne,esc,date,salaryLabel,resumeSections,contactLink,logo,field,select,area,provinces,activities,
     document,search:location.search,getJobs:()=>state.jobs,getProfile:()=>state.profile,getOfferOrigin:()=>state.offerOrigin||'search',
     setApplications:rows=>{state.applications=rows;},getRoute:()=>({page:state.page,jobId:state.ownerJobId,applicationId:state.ownerApplicationId}),
