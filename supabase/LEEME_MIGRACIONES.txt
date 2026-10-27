@@ -1,0 +1,51 @@
+MATERIAL SQL HISTÓRICO DE CONECTACUBA V17
+
+Estos archivos están escritos para Supabase. Dependencias: auth.users, auth.uid(), auth.jwt(),
+roles anon/authenticated, PostgREST y storage.buckets/storage.objects, además de PostgreSQL.
+No son directamente equivalentes a un esquema de PostgreSQL genérico en un VPS.
+No incluyen filas exportadas de usuarios ni bases de datos reales.
+
+Los archivos contienen operaciones DDL y, en algunos casos, consultas de actualización o
+publicación de los datos existentes en el destino. Eso es lógica de migración, no datos incluidos.
+Inspeccionar y obtener una copia recuperable antes de aplicar sobre un entorno con información.
+
+SECUENCIA DE DEPENDENCIAS PARA REVISAR EN UN ENTORNO NUEVO DE SUPABASE
+No ejecutar por orden alfabético. El siguiente orden se deriva de las dependencias del código;
+no se ha validado de extremo a extremo sobre una instalación nueva durante esta exportación:
+
+01 schema.sql
+02 v2_admin_and_name.sql
+03 v1_2_dynamic_contact.sql
+04 v1_3_policy_cleanup.sql
+05 v1_4_jobs.sql
+06 20261025063000_core_workflows.sql
+07 20261025065000_approved_visibility.sql
+08 20261025065500_withdrawal_privacy.sql
+09 v1_9_vacancy_counts.sql
+10 20261025144338_application_details_and_reviews.sql
+11 20261025145620_review_business_names_and_moderation.sql
+12 20261026033000_admin_review_self_moderation.sql
+
+El archivo v2_admin_and_name.sql corresponde a una etapa temprana de acceso sin username;
+su nombre no lo sitúa después del resto. v1_9_vacancy_counts.sql necesita job_applications
+creada por core_workflows; application_details_and_reviews reemplaza después el RPC con la
+versión que contempla accepted. Aplicar v1_9 al final puede volver a una definición anterior.
+
+No reaplicar ciegamente a un proyecto existente: varias políticas, triggers y restricciones
+históricas no son idempotentes. Comparar primero el historial/estado real del destino.
+
+ADMINISTRACIÓN
+Se eliminó el alta del correo original del administrador. La tabla private.admins y la lógica
+de autorización permanecen. Dar de alta manualmente una cuenta autorizada desde un canal
+administrativo privado. No publicar ese correo ni añadir un administrador de prueba en producción.
+
+PRUEBAS
+verify_core_workflows.sql no forma parte de la secuencia de migración: es una prueba en una
+transacción que termina en ROLLBACK. Contiene usuarios sintéticos con correos .invalid.
+Actualizar las expectativas antiguas de automoderación antes de ejecutarla. No afirmar que pasó
+con la excepción actual sin haberla adaptado y comprobado.
+
+PARA LA MIGRACIÓN A HOSTINGER
+Conservar las políticas de privacidad y la separación entre datos públicos y privados al
+reemplazar los servicios de Supabase. No conceder permisos generales como atajo. Resolver
+también registro, confirmación/recuperación, sesiones, API y almacenamiento de imágenes.

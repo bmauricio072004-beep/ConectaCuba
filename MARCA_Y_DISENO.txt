@@ -1,0 +1,18 @@
+LOGO ORIGINAL Y DISEÑO V17
+
+Se conservaron exactamente los archivos del repositorio, sin redibujar ni generar variantes:
+- icon.svg: fuente vectorial del logo original, incorporado en la primera versión.
+- icon-192.png e icon-512.png: recursos de icono para PWA.
+- dist/ conserva las copias correspondientes que utiliza la publicación.
+
+El SVG de la versión 17 coincide byte a byte con el del commit inicial del logo (80e0ba9).
+Fondo azul oscuro, C blanca y unión/puntos verde turquesa. No sustituirlo al migrar.
+
+El tema visual de la aplicación permanece en ios.css con las mismas hojas y HTML de la v17.
+Fondo #F0EDE6; superficie #F8F6F1; principal #0E6665; texto #20333A.
+La única sustitución de texto de la app es la autoría personal, omitida por privacidad.
+
+SHA-256 de los originales incluidos:
+icon.svg: 0e0cdc7a438551f01695235eec37e01c19c069acf6007cae17053d3d8b357b2c
+icon-192.png: ef64c5e56a5d16fa05edbba01f1d33ccac5029ffcc772371ce5325ad10c436cc
+icon-512.png: fcbba3893c917eb62b20a70a9a9609c229c8f97051a2e4f6af65f3502f73be88

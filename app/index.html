@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F0EDE6"><meta name="description" content="Tu espacio de empleo en ConectaCuba: vacantes, currículum, postulaciones y gestión de talento.">
+<title>ConectaCuba · Empleos y mi cuenta</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css?v=17"><link rel="stylesheet" href="/app.css?v=17"><link rel="stylesheet" href="/hiring.css?v=17"><link rel="stylesheet" href="/ios.css?v=17">
+<script defer src="/auth-config.js?v=17"></script><script defer src="/hiring.js?v=17"></script><script defer src="/opportunities.js?v=17"></script><script defer src="/auth.js?v=17"></script>
+</head>
+<body class="app-body">
+<header class="topbar app-topbar"><div class="app-header-inner">
+<a class="brand" href="#empleos" aria-label="ConectaCuba empleos"><img src="/icon.svg" width="35" height="35" alt=""><span class="brand-name">Conecta<span class="brand-accent">Cuba</span></span></a>
+<span class="app-context" hidden>Tu espacio de empleo</span>
+<div class="navactions"><button type="button" class="btn btn-outline" data-open="login" id="nav-login">Iniciar sesión</button><button type="button" class="btn btn-primary" data-open="join" id="nav-signup">Crear cuenta</button></div>
+<button type="button" class="about-icon" data-action="about-app" aria-label="Acerca de ConectaCuba">i</button></div></header>
+<div class="workspace" id="workspace">
+<aside class="workspace-sidebar" id="workspace-sidebar">
+<div class="sidebar-heading">TU ESPACIO</div>
+<nav class="account-nav workspace-nav" aria-label="Navegación de la app">
+<button type="button" data-home="#vacantes" id="nav-jobs" class="active"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>Buscar empleo</button>
+<div class="nav-divider" data-session-only hidden></div>
+<button type="button" data-account-page="applications" id="account-applications-link" hidden><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M9 5V3h6v2M8 11h8M8 15h5"/></svg></span>Mis postulaciones</button>
+<button type="button" data-account-page="resume" id="account-resume-link" hidden><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v15H6zM14 3v5h4M9 12h6M9 16h6"/></svg></span>Mi currículum</button>
+<button type="button" data-account-page="jobs" id="account-jobs-link" hidden><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V3h8v4M3 12c5 3 13 3 18 0M10 14h4"/></svg></span>Mis vacantes</button>
+<button type="button" data-account-page="business" id="account-business-link" hidden><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16M6 21V7l6-4 6 4v15M9 10h.01M15 10h.01M9 14h.01M15 14h.01M10 21v-4h4v4"/></svg></span>Mi negocio</button>
+<button type="button" data-account-page="menu" id="account-profile-link" data-session-only hidden><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg></span>Mi cuenta</button>
+</nav>
+<div class="sidebar-invitation" id="sidebar-guest"><div class="invitation-symbol" aria-hidden="true">↗</div><h2>Tu experiencia cuenta.</h2><p>Crea tu perfil y prepara tu próximo paso.</p><button class="btn btn-primary" data-open="person">Crear mi perfil</button></div>
+<div class="sidebar-user" id="sidebar-user" hidden><span class="user-avatar" id="sidebar-avatar" aria-hidden="true">Tú</span><div><strong id="sidebar-user-name">Mi cuenta</strong><span id="sidebar-user-role">Persona</span></div></div>
+<button type="button" class="sidebar-signout" id="account-signout" hidden>Cerrar sesión <span aria-hidden="true">↗</span></button>
+<div class="sidebar-foot">ConectaCuba · Etapa piloto<br><a href="/?view=web" target="_blank" rel="noopener">Conocer el proyecto ↗</a></div>
+</aside>
+<main class="workspace-main" id="workspace-main">
+<div id="inicio">
+<section id="vacantes" class="job-search-view">
+<h1 class="sr-only">Ofertas de empleo</h1>
+<div class="feed-discovery"><div class="feed-searchbar"><button type="button" class="search-launcher" data-action="open-search" aria-haspopup="dialog"><span class="search-launch-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span><span><strong id="feed-search-title">Buscar empleo</strong><span id="feed-search-location">Toda Cuba</span></span><span class="search-launch-filter" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></span></button><button type="button" class="saved-launcher" data-account-page="saved" aria-label="Ofertas guardadas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z"/></svg></button></div><div id="active-filters" class="active-filters"></div></div>
+<div class="jobs-meta"><strong id="result-count" role="status">Cargando oportunidades…</strong><span id="job-source">Negocios con revisión manual</span></div>
+<div class="jobs-board" id="jobs-board">
+<div class="job-results"><div class="job-list" id="job-list"></div><div class="empty app-empty" id="empty" hidden><span class="empty-symbol" aria-hidden="true">↗</span><h2>Tu próxima oportunidad empieza aquí.</h2><p id="empty-message">Todavía no hay vacantes publicadas. Completa tu perfil mientras llegan nuevas oportunidades.</p><div class="empty-actions"><button class="btn btn-primary" data-account-page="resume">Preparar mi currículum</button><button class="btn btn-outline" data-open="business">Soy un negocio</button></div></div></div>
+
+</div>
+</section>
+</div>
+<section class="account-app" id="account-app" hidden>
+<h1 id="account-welcome" class="sr-only">Mi cuenta</h1><p id="account-subtitle" hidden></p><button id="account-home" type="button" hidden>Ver empleos</button>
+<section class="account-content" id="account-content" aria-live="polite"><p class="loading">Cargando tu cuenta…</p></section>
+</section>
+<footer id="site-footer" class="app-footer"><button type="button" class="text-btn" data-action="about-app">Acerca de ConectaCuba</button><button type="button" class="text-btn" id="install-app">Instalar en mi teléfono ↗</button></footer>
+</main>
+</div>
+<nav class="mobile-app-nav" id="mobile-app-nav" aria-label="Navegación rápida">
+<button type="button" data-home="#vacantes" id="mobile-jobs" class="active"><span class="mobile-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span><span class="mobile-label">Empleos</span></button>
+<button type="button" data-account-page="applications" id="mobile-activity"><span class="mobile-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M9 5V3h6v2M8 11h8M8 15h5"/></svg></span><span class="mobile-label">Postulaciones</span></button>
+<button type="button" data-account-page="resume" id="mobile-resume" hidden><span class="mobile-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v15H6zM14 3v5h4M9 12h6M9 16h6"/></svg></span><span class="mobile-label">Currículum</span></button>
+<button type="button" data-account-page="menu" id="mobile-account"><span class="mobile-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg></span><span class="mobile-label">Cuenta</span></button>
+</nav>
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden><div class="modal"><div class="modal-head"><h2 id="modal-title">Mi cuenta</h2><button type="button" class="close" id="close-modal" aria-label="Cerrar">×</button></div><div class="modal-body" id="modal-content"></div></div></div>
+</body></html>

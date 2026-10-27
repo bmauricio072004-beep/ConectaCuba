@@ -1,0 +1,503 @@
+/* ConectaCuba: one shared theme and one mobile composition.
+   Employment is the active module; future modules can reuse these list,
+   detail, settings-group and action-bar patterns without empty placeholders. */
+.app-body {
+  --paper:#F0EDE6; --surface:#F8F6F1; --ink:#20333A; --navy:#20333A;
+  --teal:#0E6665; --muted:#566861; --line:#D8DCD3; --tint:#DBE8E1;
+  --danger:#A53F4C; --shadow:none;
+  color:var(--ink); background:var(--paper);
+  font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.app-body [hidden]{display:none!important}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.app-body *{box-sizing:border-box}
+.app-body button,.app-body input,.app-body select,.app-body textarea{font:inherit}
+.app-body button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.app-body button:focus-visible,.app-body a:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.app-body h1,.app-body h2,.app-body h3{color:var(--ink);letter-spacing:-.4px;overflow-wrap:anywhere}
+.app-body h1{font-size:30px;line-height:1.2;max-width:none}
+.app-body h2{font-size:22px;line-height:1.3}
+.app-body h3{font-size:17px;line-height:1.4}
+.app-body p{color:var(--muted);line-height:1.65}
+.app-body .btn{min-height:48px;padding:12px 16px;font-size:14px;font-weight:650;line-height:1.35;border-radius:10px;border:0;box-shadow:none;gap:8px}
+.app-body .btn-primary,.app-body .btn-dark{background:var(--teal);color:#F9FCF8}
+.app-body .btn-primary:hover,.app-body .btn-dark:hover{background:#0A5150;transform:none}
+.app-body .btn-outline{background:var(--tint);color:var(--teal)}
+.app-body .text-btn,.app-body .contact-link{color:var(--teal);font-size:14px}
+.app-body .contact-link{text-underline-offset:3px}
+.app-body button:disabled{cursor:default}
+.app-body svg{flex-shrink:0}
+.preserve-lines{white-space:pre-line;overflow-wrap:anywhere}
+.app-body .small-note{font-size:12px!important;line-height:1.65!important;color:var(--muted)!important}
+.app-body .app-topbar{min-height:72px;height:auto;padding:0;border:0;box-shadow:none;background:var(--paper)}
+.app-header-inner{width:calc(100% - 48px);max-width:1260px;min-height:72px;margin:auto;gap:16px}
+.app-body .brand{font-size:20px;font-weight:750;letter-spacing:-.6px;gap:8px;color:var(--ink)}
+.app-body .brand img{width:32px;height:32px;border-radius:9px}
+.brand-accent{color:var(--teal)}
+.app-context,.about-icon{display:none!important}
+.app-body .navactions .btn{font-size:13px;min-height:44px;padding:10px 14px}
+.workspace{width:calc(100% - 48px);max-width:1260px;margin:auto;grid-template-columns:208px minmax(0,1fr);gap:32px;min-height:calc(100dvh - 72px)}
+.workspace-main{padding-top:20px;min-width:0}
+.workspace-sidebar{top:90px;max-height:calc(100dvh - 112px);padding:14px 0;margin-top:6px;background:transparent}
+.sidebar-heading,.nav-divider{display:none}
+.app-body .workspace-nav{gap:4px}
+.app-body .workspace-nav button{padding:13px 14px;min-height:48px;font-size:14px;border-radius:10px;color:var(--muted);background:transparent}
+.app-body .workspace-nav button.active{background:var(--tint);color:var(--teal);box-shadow:none}
+.app-body .workspace-nav button:hover{background:#E6E9E0;color:var(--teal)}
+.sidebar-invitation{border:0;border-radius:12px;padding:18px;background:var(--tint);margin-top:24px}
+.sidebar-invitation h2{font-size:18px}
+.sidebar-invitation p,.sidebar-invitation .btn{font-size:13px}
+.sidebar-user{border:0;padding-top:12px;margin:22px 8px 0}
+.user-avatar{background:var(--tint);border:0;border-radius:50%;color:var(--teal)}
+.sidebar-user strong{font-size:13px}
+.sidebar-user>div>span,.sidebar-foot,.sidebar-foot a{font-size:12px;color:var(--muted)}
+.sidebar-foot{margin:24px 12px}
+.feed-discovery{position:sticky;top:72px;z-index:9;background:var(--paper);padding:0 0 8px}
+.feed-searchbar{display:flex;align-items:stretch;gap:8px}
+.search-launcher{display:flex;align-items:center;gap:12px;text-align:left;min-width:0;flex:1;width:100%;padding:12px 14px;min-height:60px;border:0;border-radius:12px;background:var(--surface);color:var(--ink);cursor:pointer}
+.search-launcher>span:nth-child(2){min-width:0;flex:1}
+.search-launcher strong{display:block;font-size:15px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search-launcher>span:nth-child(2)>span{display:block;font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search-launch-icon,.search-launch-filter{display:grid;place-items:center;color:var(--teal);flex-shrink:0}
+.search-launch-icon svg,.search-launch-filter svg,.saved-launcher svg{width:21px;height:21px}
+.saved-launcher{display:grid;place-items:center;width:52px;min-height:52px;flex-shrink:0;border:0;border-radius:12px;color:var(--teal);background:var(--tint);cursor:pointer}
+.active-filters{display:flex;gap:6px;flex-wrap:wrap;padding-top:8px}
+.active-filters:empty{display:none}
+.filter-pill{padding:5px 9px;background:var(--tint);color:var(--teal);font-size:12px;border-radius:7px;overflow-wrap:anywhere}
+.active-filters button{border:0;background:none;color:var(--teal);min-height:36px;padding:4px 8px;font-size:13px}
+.app-body .jobs-meta{display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:12px;padding:14px 2px 12px;margin:0}
+.app-body .jobs-meta strong{font-size:14px;color:var(--ink)}
+.app-body .jobs-meta>span{font-size:12px;color:var(--muted);text-align:right}
+.app-body .jobs-board{display:block}
+.app-body .job-list{display:grid;grid-template-columns:1fr;gap:0;border-radius:12px;overflow:hidden;background:var(--surface)}
+.feed-card-wrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 52px;border:0;border-bottom:1px solid var(--line);background:var(--surface);min-width:0}
+.feed-card-wrap:last-child{border-bottom:0}
+.feed-card{padding:20px 0 18px 20px;display:flex;flex-direction:column;align-items:flex-start;width:100%;min-width:0;text-align:left;background:transparent;border:0;box-shadow:none;border-radius:0;color:var(--ink);cursor:pointer;gap:0}
+.feed-card:hover{transform:none;box-shadow:none;background:#F1F0E9}
+.feed-job-title{font-size:22px;font-weight:750;letter-spacing:-.4px;line-height:1.25;margin-bottom:6px;overflow-wrap:anywhere;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.feed-company-name{font-size:14px;color:var(--ink)}
+.feed-location{font-size:13px;color:var(--muted);margin:2px 0 0}
+.feed-pay{font-size:16px;font-weight:700;color:var(--ink);padding:0;background:none;margin:10px 0 6px;line-height:1.45}
+.feed-conditions{font-size:13px;color:var(--muted);line-height:1.5}
+.feed-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:12px;color:var(--muted);font-size:12px}
+.reviewed-business{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;background:none;color:var(--teal);padding:0;border:0}
+.save-job-button{display:grid;place-items:center;align-self:start;width:48px;height:48px;margin:9px 4px 0 0;background:transparent;border:0;border-radius:10px;color:var(--muted);cursor:pointer}
+.save-job-button svg{width:21px;height:21px}
+.save-job-button[aria-pressed="true"]{color:var(--teal);background:var(--tint)}
+.save-job-button[aria-pressed="true"] svg{fill:currentColor}
+.feed-card [data-rating-for]:empty{display:none}
+.feed-card [data-rating-for]{margin-top:8px}
+.feed-card .feed-company-name>[data-rating-for]{display:inline;margin:0 0 0 5px}
+.verified-mark{color:var(--teal);font-size:13px;font-weight:700}
+.no-rating{font-size:12px;color:var(--muted)}
+.rating-value{font-size:13px;color:var(--muted);font-weight:600}
+.rating-value>span{color:#A36D10}
+.rating-value small{font-size:12px;font-weight:400}
+.rating-value.large{font-size:25px}
+.rating-value.large small{font-size:13px}
+.app-body .app-empty,.empty-reviews{background:var(--tint);border:0;border-radius:12px;text-align:center;padding:32px 22px;min-height:0}
+.app-empty h2,.empty-reviews h2,.empty-reviews h3{font-size:21px;margin:12px 0;line-height:1.3}
+.app-empty p,.empty-reviews p{font-size:14px}
+.empty-symbol{background:none;color:var(--teal);font-size:30px;width:44px;height:44px;margin-bottom:12px}
+.empty-reviews>span{color:var(--teal);font-size:30px}
+.app-body .account-app{background:none;min-height:0;padding:0}
+.app-body .account-content{background:none;border:0;border-radius:0;box-shadow:none;padding:0;min-height:0}
+.soft-card{padding:24px;border:0;border-radius:12px;background:var(--surface);box-shadow:none;margin-bottom:14px;min-width:0}
+.soft-card h2{margin:0 0 14px;font-size:21px;line-height:1.3}
+.soft-card h3{margin:22px 0 8px}
+.soft-card p{font-size:15px;line-height:1.7;margin:10px 0;overflow-wrap:anywhere}
+.app-back{display:flex;align-items:center;gap:6px;border:0;background:var(--paper);color:var(--teal);padding:10px 0;min-height:48px;font-size:14px;font-weight:600;text-align:left;cursor:pointer;margin-bottom:8px}
+.app-back>span{font-size:25px;line-height:1}
+.inline-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:18px}
+.text-destructive{color:var(--danger);background:none;border:0;padding:12px 0;min-height:48px;font-size:14px;cursor:pointer}
+.offer-identity{padding:6px 0 20px}
+.offer-identity h1{margin:0 0 10px;font-size:32px;line-height:1.17;letter-spacing:-.7px}
+.company-text-link{padding:0;border:0;background:none;color:var(--teal);font:inherit;font-size:16px;font-weight:600;text-align:left;cursor:pointer}
+.offer-identity>p{margin:4px 0 10px;font-size:14px}
+.offer-salary{display:block;font-size:20px;color:var(--ink);margin:12px 0}
+.offer-rating,.offer-published{display:block;margin:6px 0;font-size:12px;color:var(--muted)}
+.offer-apply{display:flex;gap:10px;align-items:center;padding:16px 0;margin-top:18px}
+.offer-apply .btn{min-width:200px}
+.offer-apply .save-job-button{margin:0;background:var(--tint);color:var(--teal)}
+.app-segments{display:flex;gap:0;background:none;border-bottom:1px solid var(--line);padding:0;margin:0 0 20px;border-radius:0}
+.app-segments button{flex:1;border:0;border-bottom:2px solid transparent;background:none;border-radius:0;color:var(--muted);min-height:48px;padding:12px;font-size:14px;font-weight:600;cursor:pointer}
+.app-segments button.active,.app-segments button[aria-selected="true"]{color:var(--teal);border-bottom-color:var(--teal);background:none;box-shadow:none}
+.offer-facts{display:grid;grid-template-columns:1fr 1fr;gap:18px 24px;border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:22px}
+.offer-facts>div{min-width:0}
+.offer-facts>div>span{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.offer-facts strong{font-size:15px;color:var(--ink);line-height:1.5;font-weight:600;overflow-wrap:anywhere}
+.company-identity{display:flex;align-items:center;gap:12px}
+.company-identity>div{min-width:0}
+.company-identity h2{margin-bottom:8px}
+.app-body .business-logo{width:52px;height:52px;background:var(--tint);border:0;border-radius:12px;color:var(--teal);flex-shrink:0}
+.company-rating{margin:18px 0 24px}
+.company-profile>.btn{margin-top:16px}
+.review-overview{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.review-overview>p{width:100%;font-size:13px;margin:0}
+.review-overview h2{font-size:19px;margin-bottom:8px}
+.public-review{border-bottom:1px solid var(--line)}
+.public-review-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.public-review-top strong{font-size:18px;letter-spacing:1px;color:#A36D10}
+.empty-stars{color:#8A8A76}
+.public-review-top time{font-size:12px;color:var(--muted)}
+.public-review h3{margin:12px 0 4px;font-size:17px}
+.review-employment,.review-anonymous{display:block;font-size:12px;color:var(--muted)}
+.review-anonymous{margin-top:16px}
+.application-list{display:grid;gap:0;border-radius:12px;overflow:hidden;background:var(--surface)}
+.application-card{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 12px;width:100%;padding:20px;border:0;border-bottom:1px solid var(--line);background:var(--surface);text-align:left;box-shadow:none;border-radius:0;cursor:pointer}
+.application-card:last-child{border-bottom:0}
+.application-card>strong{grid-column:1/-1;font-size:20px;line-height:1.3;color:var(--ink);overflow-wrap:anywhere}
+.application-company{grid-column:1;font-size:14px;color:var(--muted);align-self:center}
+.application-card>.outcome{justify-self:end;max-width:145px}
+.application-card-foot{grid-column:1/-1;display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted);margin-top:4px}
+.application-card-foot>span{font-size:22px;color:var(--teal);line-height:1}
+.outcome,.stage-chip,.status-chip{display:inline-flex;align-items:center;justify-content:center;line-height:1.35;padding:5px 8px;font-size:12px;font-weight:600;border:0;border-radius:6px;background:#E2E8E3;color:#3E615C;white-space:normal}
+.outcome-reviewing,.stage-reviewing{background:#E8E6D9;color:#695F2B}
+.outcome-contacted,.stage-contacted{background:#DEE9EC;color:#315A67}
+.outcome-accepted,.stage-accepted,.status-chip.approved{background:var(--tint);color:var(--teal)}
+.outcome-not_selected,.stage-not_selected,.status-chip.rejected{background:#EDDFE0;color:#8F3F4E}
+.outcome-withdrawn,.stage-withdrawn{background:#E5E3DE;color:#615F59}
+.application-detail-head h1{font-size:28px;margin:0 0 8px;line-height:1.2}
+.application-detail-head>p{margin:0 0 14px}
+.application-explanation{margin:16px 0 24px;padding:0;background:none}
+.application-explanation p{margin:0;font-size:15px}
+.application-dates{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0}
+.application-dates dt{font-size:12px;color:var(--muted)}
+.application-dates dd{margin:5px 0 0;font-size:14px;color:var(--ink)}
+.application-extra summary{min-height:28px;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}
+.application-extra[open] summary{margin-bottom:20px}
+.saved-heading{padding:4px 0 18px}
+.saved-heading h1{font-size:26px;margin:0 0 8px}
+.saved-heading p{margin:0}
+.account-identity{display:flex;align-items:center;gap:12px;background:none;border:0;border-radius:0;padding:8px 0 20px;margin:0;min-width:0}
+.account-avatar{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--tint);color:var(--teal);font-size:18px;font-weight:700;flex-shrink:0}
+.account-identity>div{min-width:0}
+.account-identity h2{font-size:23px;margin:0 0 5px;line-height:1.2}
+.account-identity p{font-size:13px;margin:0;color:var(--muted)}
+.settings-group{margin:0 0 18px}
+.app-body .settings-group-label{font-size:13px;letter-spacing:0;font-weight:600;color:var(--muted);margin:0 0 8px;padding:0}
+.account-group{background:var(--surface);border:0;border-radius:12px;overflow:hidden;box-shadow:none}
+.account-row{width:100%;display:flex;align-items:center;gap:12px;padding:16px;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;min-height:64px;cursor:pointer}
+.account-row:last-child{border-bottom:0}
+.account-row-icon{display:grid;place-items:center;width:24px;height:24px;flex-shrink:0;background:none;color:var(--teal)}
+.account-row-icon svg{width:21px;height:21px}
+.account-row>span:nth-child(2){flex:1;min-width:0}
+.account-row strong{display:block;font-size:15px;font-weight:600;color:var(--ink)}
+.account-row small{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.row-chevron{font-size:23px;color:var(--muted);line-height:1}
+.logout-button{width:100%;min-height:48px;margin:4px 0 12px;border:0;border-radius:10px;background:none;color:var(--danger);font-size:14px;text-align:left;padding:12px 16px;cursor:pointer}
+.resume-profile{padding:8px 0 22px}
+.resume-profile h2{margin:0 0 6px}
+.resume-profile>p{font-size:14px;margin:0}
+.resume-progress{margin:18px 0}
+.resume-progress>span:first-child{font-size:12px;color:var(--muted);display:block;margin-bottom:9px}
+.progress-track{height:5px;border-radius:9px;background:var(--line);display:block;overflow:hidden}
+.progress-track>span{height:100%;border-radius:inherit;background:var(--teal);display:block}
+.resume-profile>.btn{width:auto}
+.resume-row{display:flex;width:100%;align-items:center;gap:12px;padding:18px;border:0;border-bottom:1px solid var(--line);background:var(--surface);text-align:left;min-height:76px;cursor:pointer}
+.resume-row:last-child{border-bottom:0}
+.resume-row>span:first-child{flex:1;min-width:0}
+.resume-row strong{display:block;font-size:15px;color:var(--ink);font-weight:600}
+.resume-row small{display:block;color:var(--muted);font-size:13px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resume-row-state{font-size:12px;white-space:nowrap;color:var(--teal)}
+.resume-row-state>span{font-size:20px;vertical-align:middle;margin-left:4px}
+.resume-privacy{margin:18px 0}
+.pdf-tools{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 20px}
+.pdf-tools>span{font-size:13px;color:var(--muted)}
+.app-body .cv-paper{background:#FFF;border:0;border-radius:10px;box-shadow:none;color:#20333A}
+.app-body .cv-header h1{color:#20333A}
+.app-body .field{min-width:0}
+.app-body .field label{font-size:13px;font-weight:600;color:var(--ink)}
+.app-body .field input,.app-body .field select,.app-body .field textarea{font-size:16px;min-height:48px;background:#E8E9E0;border:1px solid #CDD4C9;border-radius:10px;padding:12px;color:var(--ink)}
+.app-body .field textarea{line-height:1.6;min-height:130px}
+.app-body .field input:focus,.app-body .field select:focus,.app-body .field textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+.app-body .hint{font-size:12px;color:var(--muted);line-height:1.6}
+.app-body .form-section{font-size:15px;color:var(--teal);border:0}
+.app-body .form-grid{gap:16px}
+.account-form-card .form-grid{margin-top:18px}
+.account-form-card h2{font-size:22px}
+.security-email{font-size:17px!important;font-weight:600;color:var(--ink)!important;overflow-wrap:anywhere}
+.app-body .notice{border:0;border-radius:10px;font-size:14px;line-height:1.6;background:var(--tint);color:var(--teal)}
+.app-body .notice.info:not(.toast){background:#E8E6D9;color:#665A2D}
+.app-body .toast{background:var(--ink);color:#F9FCF8;box-shadow:0 4px 20px #20333A20;border-radius:12px;font-size:14px}
+.app-body .account-note,.app-body .check-field{background:none;font-size:13px;color:var(--muted);line-height:1.65}
+.app-body .check-field{padding:0}
+.app-body .password-control{position:relative}
+.app-body .password-control input{padding-right:86px}
+.app-body .password-toggle{color:var(--teal);font-size:13px;min-height:44px}
+.app-body .modal-backdrop{background:#20333A75;backdrop-filter:none}
+.app-body .modal{background:var(--paper);border:0;border-radius:18px;box-shadow:0 12px 50px #20333A30}
+.app-body .modal-head{padding:18px 20px 12px;background:var(--paper);border:0}
+.app-body .modal-head h2{font-size:21px;line-height:1.25}
+.app-body .modal-body{padding:12px 20px 24px}
+.app-body .close{width:44px;height:44px;min-height:44px;background:var(--tint);color:var(--teal);border:0;border-radius:50%;font-size:25px}
+.app-body .path-card{border:0;border-radius:12px;background:var(--surface);padding:20px;box-shadow:none}
+.app-body .path-card h3{font-size:19px}
+.app-body .path-card p{font-size:14px}
+.about-app{text-align:center;padding:4px}
+.about-app>img{border-radius:18px}
+.about-app h3{font-size:25px;margin:16px 0 6px}
+.app-version{font-size:13px;color:var(--muted)}
+.about-app>p{font-size:14px;line-height:1.7;margin:20px 0}
+.about-author{padding:16px;background:var(--tint);border-radius:10px;display:flex;flex-direction:column;gap:5px}
+.about-author>span{font-size:12px;color:var(--muted)}
+.about-author strong{font-size:17px;color:var(--teal)}
+.about-app>.btn{display:flex;margin:10px 0 0;width:100%}
+.app-body .app-footer{display:flex;gap:16px;flex-wrap:wrap;border:0;font-size:12px;padding:24px 0}
+.app-footer .text-btn{font-size:12px}
+.hiring-toolbar{margin-bottom:18px;gap:14px}
+.app-body .hiring-summary{font-size:13px;color:var(--muted)}
+.app-body .hiring-toolbar>.btn{font-size:14px}
+.app-body .hiring-filters{display:flex;gap:4px;border:0;padding:4px;background:var(--tint);border-radius:10px;margin-bottom:16px}
+.app-body .hiring-filters button{flex:1;min-height:44px;padding:10px;font-size:14px;border:0;border-radius:7px;color:var(--teal)}
+.app-body .hiring-filters button.active{background:var(--surface);color:var(--teal)}
+.app-body .hiring-jobs-grid{display:grid;grid-template-columns:1fr;gap:0;background:var(--surface);border-radius:12px;overflow:hidden}
+.app-body .hiring-job-card{position:relative;background:var(--surface);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:20px;box-shadow:none}
+.app-body .hiring-job-card:last-child{border-bottom:0}
+.app-body .hiring-job-top{margin-bottom:10px}
+.app-body .hiring-job-card h2{font-size:22px;line-height:1.3;margin:0 0 6px;color:var(--ink)}
+.app-body .hiring-job-location{font-size:14px;color:var(--muted);margin:0}
+.app-body .hiring-job-numbers{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;margin-top:14px;padding-top:0;border:0;font-size:14px;color:var(--muted)}
+.app-body .hiring-job-numbers strong{color:var(--ink)}
+.app-body .hiring-job-numbers .has-pending{background:var(--tint);color:var(--teal);padding:4px 8px;border-radius:6px;font-size:12px}
+.app-body .hiring-open-job{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;font-size:14px!important;color:var(--teal);padding:10px 0 0;border:0;background:none;margin-top:4px;font-weight:600;border-radius:0}
+.hiring-open-job>span{font-size:24px}
+.app-body .hiring-empty{border:0;background:var(--tint);border-radius:12px;padding:30px 20px}
+.app-body .hiring-empty h2{font-size:22px}
+.app-body .hiring-empty p{font-size:14px}
+.app-body .hiring-permission{border:0;background:#E8E6D9;border-radius:10px;padding:16px;gap:12px}
+.app-body .hiring-permission strong{font-size:15px;color:#665A2D}
+.app-body .hiring-permission p{font-size:14px;color:#665A2D;margin:5px 0}
+.app-body .hiring-breadcrumb{background:var(--paper);margin:0 0 10px;min-height:48px}
+.app-body .hiring-breadcrumb button,.app-body .hiring-return{font-size:14px;color:var(--teal);min-height:48px;line-height:1.5}
+.app-body .hiring-vacancy-head{display:block;padding:18px 20px;background:var(--surface);border:0;border-radius:12px;box-shadow:none}
+.app-body .hiring-vacancy-head h1{font-size:27px;line-height:1.25;margin:8px 0}
+.app-body .hiring-vacancy-head>div>p{font-size:14px;color:var(--muted);margin:8px 0}
+.app-body .hiring-job-description{border-top:1px solid var(--line);padding-top:14px;margin-top:16px}
+.app-body .hiring-job-description summary{font-size:14px;color:var(--teal);min-height:30px;line-height:1.5}
+.app-body .hiring-job-description p{font-size:15px;color:var(--muted);line-height:1.65}
+.app-body .hiring-vacancy-actions{max-width:none;width:100%;justify-content:flex-start;margin-top:18px;gap:8px}
+.app-body .hiring-vacancy-actions>.btn{font-size:14px!important;min-height:48px!important;padding:12px!important}
+.app-body .hiring-applicants{background:var(--surface);border:0;border-radius:12px;margin:16px 0 0;padding:20px;box-shadow:none}
+.app-body .hiring-applicants-head{gap:16px;margin-bottom:12px;align-items:center}
+.app-body .hiring-applicants-head h2{font-size:21px;color:var(--ink);margin:0}
+.app-body .hiring-applicants-head h2>span{font-size:13px;padding:4px 7px;color:var(--teal);background:var(--tint)}
+.app-body .hiring-applicants-head>.field{min-width:160px;max-width:230px}
+.app-body .hiring-applicants-head label{font-size:12px}
+.app-body .hiring-applicants-head select{font-size:14px}
+.app-body .applicant-row{background:var(--surface);border-color:var(--line);color:var(--ink);padding:16px 0;gap:12px}
+.app-body .applicant-avatar{background:var(--tint);color:var(--teal);border-radius:50%;font-size:14px}
+.app-body .applicant-main>strong{font-size:16px;color:var(--ink)}
+.app-body .applicant-main>span{font-size:13px;color:var(--muted)}
+.app-body .applicant-main>small{font-size:12px;color:var(--muted)}
+.app-body .applicant-arrow{color:var(--teal)}
+.app-body .applicant-pagination{border-color:var(--line);font-size:12px;color:var(--muted)}
+.app-body .applicant-pagination .btn{font-size:13px!important;min-height:44px!important}
+.app-body .hiring-list-empty{border-color:var(--line);padding:28px 10px}
+.app-body .hiring-list-empty h3{font-size:18px}
+.app-body .hiring-list-empty p{font-size:14px;color:var(--muted)}
+.app-body .candidate-heading,.app-body .candidate-section{background:var(--surface);border:0;border-radius:12px;box-shadow:none;padding:20px}
+.app-body .candidate-heading h1{font-size:27px;color:var(--ink);line-height:1.25}
+.app-body .candidate-heading p{font-size:14px;color:var(--muted)}
+.app-body .candidate-heading .workspace-eyebrow,.app-body .hiring-applicants .workspace-eyebrow{display:none}
+.app-body .candidate-section h2{font-size:19px;color:var(--ink)}
+.app-body .candidate-section p{font-size:15px;color:var(--muted);line-height:1.7}
+.app-body .candidate-section-heading{border-color:var(--line);margin-bottom:16px;padding-bottom:14px}
+.app-body .candidate-section-heading>span,.app-body .candidate-contact>span,.app-body .candidate-status-note{font-size:12px;color:var(--muted)}
+.app-body .candidate-resume .cv-section h3{font-size:15px;color:var(--ink);letter-spacing:0;text-transform:none}
+.app-body .candidate-resume .cv-section p{font-size:15px}
+.app-body .candidate-status .btn{font-size:14px!important;min-height:48px!important;background:var(--tint);color:var(--teal)}
+.app-body .candidate-status .btn.current{background:var(--teal);color:#F9FCF8}
+.app-body .candidate-contact .contact-link{color:var(--teal)}
+.app-body .review-card{background:var(--surface);border:0;border-radius:12px;box-shadow:none;padding:20px}
+.app-body .review-card h3{font-size:20px}
+.app-body .review-card p{font-size:14px;line-height:1.7}
+.app-body .review-actions .btn{font-size:14px}
+.photo-editor{padding:16px 0}
+.moderation-filters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px}
+.moderation-filters button{border:0;border-radius:8px;min-height:44px;padding:10px 12px;font-size:13px;background:var(--tint);color:var(--teal)}
+.moderation-filters button[aria-pressed="true"]{background:var(--teal);color:#F9FCF8}
+.own-reviews h2{margin-top:12px}
+.app-body .account-content[aria-busy="true"] .offer-tab-content{opacity:.55;pointer-events:none}
+.mobile-app-nav{display:none}
+@media(max-width:1000px) and (min-width:721px){
+  .workspace{grid-template-columns:180px minmax(0,1fr);gap:22px}
+  .app-body .workspace-nav button{font-size:13px;padding:12px}
+  .candidate-layout{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+  html{scroll-padding-top:64px}
+  .app-body .app-topbar{min-height:56px}
+  .app-header-inner{width:calc(100% - 32px);min-height:56px;gap:8px}
+  .app-body .brand{font-size:18px;gap:7px}
+  .app-body .brand img{width:28px;height:28px}
+  .app-body .navactions .btn{font-size:12px;min-height:44px;padding:10px 12px}
+  .app-topbar.has-session .navactions{display:none}
+  .app-body .app-topbar.has-session .brand-name{display:inline!important}
+  .workspace{display:block;width:calc(100% - 32px);min-height:calc(100dvh - 56px);padding-bottom:90px}
+  .workspace-sidebar{display:none}
+  .workspace-main{padding:8px 0 0}
+  .feed-discovery{top:56px;padding-bottom:6px}
+  .search-launcher{min-height:56px;padding:10px 12px;gap:10px}
+  .search-launcher strong{font-size:14px}
+  .search-launcher>span:nth-child(2)>span{font-size:12px}
+  .search-launch-filter svg{width:18px;height:18px}
+  .saved-launcher{width:48px;min-height:48px}
+  .app-body .jobs-meta{padding:12px 0 10px;gap:8px}
+  .app-body .jobs-meta strong{font-size:13px}
+  .app-body .jobs-meta>span{font-size:12px;max-width:47%}
+  .app-body .job-list{border-radius:0;margin-inline:-16px;overflow:visible}
+  .feed-card-wrap{grid-template-columns:minmax(0,1fr) 52px}
+  .feed-card{padding:16px 0 15px 16px}
+  .feed-job-title{font-size:19px;line-height:1.25;margin-bottom:5px}
+  .feed-company-name{font-size:14px}
+  .feed-location{font-size:13px}
+  .feed-pay{font-size:16px;margin:9px 0 5px}
+  .feed-conditions{font-size:13px}
+  .feed-card-bottom{font-size:12px;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .reviewed-business{font-size:12px}
+  .save-job-button{margin-top:6px}
+  .app-body .account-content{padding:0;border:0;background:none}
+  .soft-card{padding:18px 0;background:none;border-radius:0;border-bottom:1px solid var(--line);margin-bottom:12px}
+  .soft-card p{font-size:15px;line-height:1.65}
+  .soft-card h2{font-size:21px}
+  .soft-card h3{font-size:17px}
+  .app-body .app-empty,.empty-reviews{padding:28px 18px;background:var(--tint);border:0;border-radius:12px;margin:8px 0}
+  .app-back{position:sticky;top:0;z-index:12;width:100%;padding:12px 0;margin-bottom:4px;min-height:48px;background:var(--paper)}
+  .offer-identity{padding:8px 0 16px}
+  .offer-identity h1{font-size:26px;line-height:1.2;margin-bottom:9px}
+  .company-text-link{font-size:15px}
+  .offer-identity>p{font-size:14px}
+  .offer-salary{font-size:19px;margin:12px 0 9px}
+  .offer-rating,.offer-published{font-size:12px}
+  .offer-tabs{position:sticky;top:48px;z-index:10;background:var(--paper);margin-bottom:10px}
+  .app-segments button{font-size:14px;padding:10px 6px}
+  .offer-facts{gap:16px 18px;margin-bottom:20px;padding-bottom:20px}
+  .offer-facts strong{font-size:14px}
+  .offer-apply{position:fixed;bottom:0;left:0;right:0;z-index:19;margin:0;background:var(--surface);border-top:1px solid var(--line);padding:12px 16px max(12px,env(safe-area-inset-bottom));gap:10px}
+  .offer-apply .btn{flex:1;min-width:0}
+  .offer-apply .save-job-button{width:48px;min-height:48px}
+  .company-identity h2{font-size:22px}
+  .review-overview{gap:12px}
+  .review-overview h2{font-size:20px}
+  .public-review{padding:18px 0}
+  .public-review-top{align-items:flex-start;flex-wrap:wrap;gap:6px}
+  .application-list{margin-inline:-16px;border-radius:0}
+  .application-card{padding:18px 16px;gap:7px 10px}
+  .application-card>strong{font-size:19px}
+  .application-company{font-size:14px}
+  .application-card>.outcome{font-size:12px;max-width:130px}
+  .application-detail-head{padding-top:8px}
+  .application-detail-head h1{font-size:26px}
+  .application-explanation{margin:14px 0 22px}
+  .application-dates{gap:16px}
+  .application-dates dd{font-size:13px}
+  .application-extra{padding:16px 0;margin-bottom:0}
+  .application-extra summary{min-height:36px;display:list-item}
+  .saved-heading{padding:8px 0 20px}
+  .saved-heading h1{font-size:24px}
+  .account-identity{padding:8px 0 20px;gap:12px}
+  .account-identity h2{font-size:22px}
+  .account-avatar{width:44px;height:44px;font-size:17px}
+  .app-body .settings-group-label{padding:0;font-size:13px;margin:0 0 8px}
+  .settings-group{margin-bottom:20px}
+  .account-group{margin-inline:-16px;border-radius:0}
+  .account-row{min-height:56px;padding:15px 16px;gap:12px}
+  .account-row strong{font-size:15px}
+  .account-row small{display:none}
+  .account-row-icon{width:22px;height:22px}
+  .logout-button{margin-top:0;padding:12px 0}
+  .resume-profile{padding-top:8px}
+  .resume-profile h2{font-size:24px}
+  .resume-profile>.btn{width:100%}
+  .resume-row{padding:17px 16px;min-height:78px}
+  .resume-row strong{font-size:15px}
+  .resume-row small{font-size:13px}
+  .resume-privacy{margin:20px 0}
+  .app-body .cv-paper{padding:24px 18px;border-radius:8px}
+  .app-body .cv-header h1{font-size:24px}
+  .account-form-card{padding:8px 0 20px}
+  .account-form-card .form-grid{margin-top:18px}
+  .app-body .form-grid{grid-template-columns:1fr;gap:16px}
+  .app-body .field label{font-size:14px}
+  .app-body .field input,.app-body .field select,.app-body .field textarea{font-size:16px}
+  .app-body .form-actions{gap:8px}
+  .app-body .form-actions .btn{min-height:48px}
+  .app-body .modal-backdrop{padding:0;align-items:flex-end}
+  .app-body .modal{width:100%;border-radius:18px 18px 0 0;max-height:94dvh;margin:0}
+  .app-body .modal-head{padding:14px 16px 8px}
+  .app-body .modal-head h2{font-size:20px}
+  .app-body .modal-body{padding:12px 16px max(24px,env(safe-area-inset-bottom))}
+  .app-body .toast{bottom:88px;font-size:14px}
+  .app-body .app-footer{padding:22px 0;font-size:12px}
+  .app-footer .text-btn{min-height:44px}
+  .mobile-app-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;min-height:72px;background:var(--surface);border:0;border-top:1px solid var(--line);border-radius:0;z-index:20;box-shadow:none;padding:6px 8px max(8px,env(safe-area-inset-bottom));gap:4px}
+  .mobile-app-nav button{border:0;background:none;color:var(--muted);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:54px;padding:7px 3px;min-width:0}
+  .mobile-app-nav button.active{background:var(--tint);color:var(--teal)}
+  .mobile-icon,.mobile-icon svg{width:21px;height:21px}
+  .mobile-label{font-size:12px;white-space:nowrap;font-weight:600}
+  .app-body.focused-view .app-topbar,.focused-view .mobile-app-nav,.focused-view .app-footer{display:none}
+  .focused-view .workspace{padding-bottom:28px;min-height:100dvh}
+  .focused-view .workspace-main{padding-top:0}
+  .app-body[data-app-view="offer"] .workspace{padding-bottom:100px}
+  .focused-view .toast{bottom:24px}
+  .app-body[data-app-view="offer"] .toast{bottom:88px}
+  .app-body .hiring-toolbar{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin-bottom:14px}
+  .app-body .hiring-toolbar>.btn{width:100%;justify-content:space-between}
+  .app-body .hiring-summary{font-size:13px}
+  .app-body .hiring-filters{margin-bottom:12px}
+  .app-body .hiring-jobs-grid{margin-inline:-16px;border-radius:0}
+  .app-body .hiring-job-card{padding:16px}
+  .app-body .hiring-job-card h2{font-size:21px}
+  .app-body .hiring-job-top{margin-bottom:8px}
+  .app-body .hiring-job-location{font-size:13px}
+  .app-body .hiring-job-numbers{font-size:14px;margin-top:12px;gap:8px 12px}
+  .app-body .hiring-open-job{padding-top:8px}
+  .app-body .hiring-breadcrumb{position:sticky;top:0;z-index:12;padding:0;margin:0;min-height:48px;background:var(--paper)}
+  .app-body .hiring-breadcrumb button{padding:12px 0;min-height:48px;font-size:14px}
+  .app-body .hiring-vacancy-head{padding:10px 0 18px;border-radius:0;background:none}
+  .app-body .hiring-vacancy-head h1{font-size:25px;line-height:1.2}
+  .app-body .hiring-vacancy-head .hiring-title-line{margin-bottom:8px}
+  .app-body .hiring-job-description{padding-top:10px;margin-top:12px}
+  .app-body .hiring-job-description summary{min-height:36px}
+  .app-body .hiring-vacancy-actions{margin-top:14px}
+  .app-body .hiring-vacancy-actions>.btn{flex:1}
+  .app-body .hiring-applicants{padding:0;background:none;border-radius:0;margin-top:6px}
+  .app-body .hiring-applicants-head{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:12px}
+  .app-body .hiring-applicants-head h2{font-size:20px;margin:0;flex:1}
+  .app-body .hiring-applicants-head>.field{min-width:0;width:100%;max-width:none}
+  .app-body .hiring-applicants-head select{font-size:16px}
+  .app-body .applicant-row{grid-template-columns:36px minmax(0,1fr) 14px;gap:4px 10px;padding:16px 0;background:none}
+  .app-body .applicant-avatar{width:36px;height:36px;grid-row:1/3}
+  .app-body .applicant-main>strong{font-size:16px}
+  .app-body .applicant-main>span{font-size:13px}
+  .app-body .applicant-main>small{font-size:12px}
+  .app-body .applicant-row>.stage-chip{grid-column:2;grid-row:2;font-size:12px;margin:5px 0 0;justify-self:start}
+  .app-body .applicant-arrow{grid-column:3;grid-row:1/3}
+  .app-body .candidate-heading{padding:8px 0 20px;background:none;border-radius:0;margin-bottom:0;gap:10px}
+  .app-body .candidate-heading h1{font-size:25px}
+  .app-body .candidate-heading p{font-size:13px}
+  .app-body .candidate-heading>.stage-chip{margin-left:56px}
+  .app-body .candidate-heading .applicant-avatar{width:44px;height:44px;font-size:17px}
+  .app-body .hiring-return{position:sticky;top:0;z-index:12;background:var(--paper);display:block;width:100%;min-height:48px;padding:12px 0;font-size:14px;margin:0}
+  .app-body .candidate-layout{display:flex;flex-direction:column;gap:0}
+  .app-body .candidate-section{padding:18px 0;border-bottom:1px solid var(--line);background:none;border-radius:0;margin-bottom:0}
+  .app-body .candidate-contact{margin-bottom:0!important}
+  .app-body .candidate-status{margin-top:0}
+  .app-body .candidate-status .btn{font-size:14px!important;min-height:48px!important}
+  .app-body .review-card{padding:18px 0;background:none;border-radius:0;border-bottom:1px solid var(--line)}
+  .app-body .review-card p{font-size:14px}
+  .moderation-filters button{font-size:13px;min-height:44px}
+}
+@media(max-width:520px){
+  .app-body .app-topbar:not(.has-session) .brand-name{display:none}
+  .app-body .app-topbar:not(.has-session) .brand{min-width:28px}
+}
+@media(prefers-reduced-motion:reduce){.app-body *{scroll-behavior:auto;transition:none!important}}
+@media(prefers-contrast:more){.app-body{--muted:#374941;--line:#8A998E}}
+@media print{
+  .app-body{background:#FFF!important}
+  .app-body .app-back,.app-body .pdf-tools,.app-body .offer-apply{display:none!important}
+  .app-body .cv-paper{background:#FFF!important;border-radius:0;box-shadow:none}
+}

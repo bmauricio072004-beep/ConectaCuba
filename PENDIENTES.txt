@@ -1,0 +1,36 @@
+PENDIENTES Y LÍMITES CONOCIDOS — V17
+
+1. Correo: faltan pruebas reales de entrega, confirmación y recuperación de contraseña.
+   Revisar SMTP/proveedor, redirecciones de Auth y configuración del entorno con acceso autorizado.
+
+2. Suite SQL: supabase/verify_core_workflows.sql contiene expectativas anteriores a la
+   excepción que permite automoderación del único administrador. Actualizar esas expectativas
+   antes de ejecutarla y conservar el ROLLBACK. No se ejecutó esta suite para preparar el ZIP.
+
+3. Reseña propia del administrador: el guard del piloto puede impedir editar cuerpo/evidencia
+   de su propia reseña. Revisar ese caso sin quitar por accidente la excepción autorizada.
+
+4. Migración: no hay todavía backend propio para Hostinger ni autenticación sustitutiva.
+   Hay que definir, implementar y probar la migración de Auth, API, permisos, archivos y correo.
+   El ZIP no contiene datos ni cuentas; tampoco configura administrador automáticamente.
+
+5. SQL histórico: se incluye todo el material del repositorio, no un dump ni un bootstrap
+   consolidado verificado. Hay dependencias de Supabase y funciones que se reemplazan entre
+   migraciones. Ver supabase/LEEME_MIGRACIONES.txt; no ejecutar en orden alfabético sin revisar.
+
+6. Offline: existe caché, pero no una cola general de operaciones privadas sin conexión.
+   Guardadas se conserva en cada dispositivo; no es sincronización de favoritos en la nube.
+
+7. QA: pruebas anteriores cubrieron móvil 320/360/390 px y escritorio con datos ficticios.
+   No se ha certificado todo Android ni una conexión real desde Cuba. Tampoco capacidad,
+   consumo o rendimiento de la futura instalación de Hostinger.
+
+8. Lanzamiento: enlaces con vista previa para compartir, avisos de novedades, reportes/soporte,
+   control de abuso, textos de privacidad/control de cuenta y métricas son mejoras propuestas,
+   no funcionalidades terminadas de esta exportación.
+
+9. Configuración vacía: es deliberada por privacidad. Configurar un backend de desarrollo
+   autorizado antes de utilizar el registro o cargar datos reales.
+
+10. Antes de publicar: copiar activos, borrar recursivamente todos los dist/**/_qa* y ejecutar
+    verify-release. No incluir pruebas de interfaz o datos ficticios en producción.

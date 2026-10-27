@@ -1,0 +1,21 @@
+# Configuración local y credenciales
+/auth-config.js
+/dist/auth-config.js
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.git/
+node_modules/
+*.zip
+# QA local: nunca publicar
+/dist/**/_qa*
+/dist/_qa*
+# Artefacto autónomo de prueba; se regenera desde scripts/build-preview.cjs
+/preview/
+# Salida de revisión en línea, independiente de producción
+/preview-site/
+
+# Activos generados desde la fuente
+/dist/
